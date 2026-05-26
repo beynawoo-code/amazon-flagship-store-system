@@ -4,11 +4,12 @@
 
 **在线访问：** https://beynawoo-code.github.io/amazon-flagship-store-system/
 
-本地预览：在 `modules` 目录启动静态服务，例如 `python3 -m http.server 8080 --directory modules`，然后打开 http://localhost:8080/
+本地预览：在项目根目录执行 `python3 -m http.server 8080`，浏览器打开 http://localhost:8080/
 
 ## 目录结构
 
-- `modules/` — 所有 HTML / JS 方案页与导航入口（`index.html`）
+- `index.html` — 方案导航入口
+- `_system/`、`page-planning/`、`publish-and-traffic/`、`analytics-and-iteration/` — 各模块 HTML / JS
 - `.github/workflows/` — GitHub Pages 自动部署
 
-推送至 `main` 分支后，Actions 会将 `modules/` 发布为站点根目录。
+推送至 `main` 分支后，Actions 会自动发布站点。
