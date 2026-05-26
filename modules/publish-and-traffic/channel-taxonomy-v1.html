@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>站外引流渠道字典 v1.2 · Amazon Channel · 营销策略</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07090f; --bg-card: #0e1422; --bg-el: #141b2e; --border: rgba(255,255,255,.08);
+      --txt: #dde6f5; --txt2: #7a90b0; --txt3: #4a5e78;
+      --erp: #a855f7; --erp-bg: rgba(168,85,247,.12); --erp-border: rgba(168,85,247,.35);
+      --amz: #ff9900; --amz-bg: rgba(255,153,0,.12); --amz-border: rgba(255,153,0,.4);
+      --p0: #22c55e; --p0-bg: rgba(34,197,94,.12); --p0-border: rgba(34,197,94,.35);
+      --ext: #f59e0b; --ext-bg: rgba(245,158,11,.08); --ext-border: rgba(245,158,11,.3);
+      --font: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0 }
+    body { font-family: var(--font); background: var(--bg); color: var(--txt); line-height: 1.55; padding: 40px 48px 80px; max-width: 1200px; margin: 0 auto }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 10px; font-weight: 700;
+      background: var(--amz-bg); border: 1px solid var(--amz-border); color: var(--amz); margin-bottom: 12px }
+    h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px;
+      background: linear-gradient(135deg, #e8ecf4, #ffb84d); -webkit-background-clip: text; -webkit-text-fill-color: transparent }
+    .sub { color: var(--txt2); font-size: 14px; margin-bottom: 24px }
+    .nav-links { margin-bottom: 28px; font-size: 13px }
+    .nav-links a { color: #7eb3ff; margin-right: 16px }
+    .model-box { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 32px }
+    .model-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 14px }
+    .model-card.amz { border-color: var(--amz-border); background: rgba(255,153,0,.06) }
+    .model-card h3 { font-size: 11px; color: var(--txt3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px }
+    .model-card p { font-size: 13px; color: var(--txt2) }
+    .model-card code { color: #ffb84d; font-size: 12px }
+    .az-strip { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px }
+    .az-pill { background: var(--amz-bg); border: 1px solid var(--amz-border); border-radius: 10px; padding: 10px 14px; font-size: 13px }
+    .az-pill code { color: #ffb84d; margin-left: 6px }
+    section { margin-bottom: 40px }
+    section > h2 { font-size: 17px; font-weight: 800; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border) }
+    .major-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 16px; overflow: hidden }
+    .major-block.p0 { border-color: var(--p0-border) }
+    .major-block.ext { border-color: var(--ext-border); opacity: .92 }
+    .major-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: var(--bg-el); flex-wrap: wrap }
+    .major-head h3 { font-size: 15px; font-weight: 700; flex: 1 }
+    .tag { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px }
+    .tag.p0 { background: var(--p0-bg); color: var(--p0); border: 1px solid var(--p0-border) }
+    .tag.ext { background: var(--ext-bg); color: var(--ext); border: 1px solid var(--ext-border) }
+    .tag.bulk { background: rgba(59,130,246,.15); color: #7eb3ff }
+    .meta-inline { font-size: 11px; color: var(--txt3) }
+    .meta-inline code { color: var(--txt2) }
+    table { width: 100%; border-collapse: collapse; font-size: 12px }
+    th { text-align: left; padding: 8px 14px; background: rgba(0,0,0,.2); color: var(--txt3); font-size: 10px; text-transform: uppercase }
+    td { padding: 8px 14px; border-top: 1px solid var(--border); color: var(--txt2) }
+    td code { font-size: 11px; background: rgba(0,0,0,.3); padding: 1px 5px; border-radius: 4px; color: #c4b5fd }
+    tr.p0-row td { color: var(--txt) }
+    tr.dim td { opacity: .55 }
+    .pill-p0 { display: inline-block; font-size: 9px; font-weight: 800; color: var(--p0); margin-left: 6px }
+    .legacy-table { border: 1px solid var(--border); border-radius: 12px; overflow: hidden }
+    .doc-footer { margin-top: 48px; text-align: center; font-size: 11px; color: var(--txt3) }
+    @media (max-width: 900px) { .model-box { grid-template-columns: 1fr 1fr } body { padding: 24px 16px } }
+    @media (max-width: 600px) { .model-box { grid-template-columns: 1fr } }
+  </style>
+</head>
+<body>
+  <div class="badge">channel-taxonomy v1.2</div>
+  <h1>站外引流渠道字典 · Amazon Channel · 营销策略</h1>
+  <p class="sub">L0 = Console <strong>Channel 五选一</strong>；L1/L2 = 内部<strong>营销大类/子类</strong>；平台 = <code>publisher_name</code>（Google / Facebook / Instagram…）。<code>name_short</code> 不含 Channel，全局唯一。</p>
+  <p class="nav-links">
+    <a href="attribution-campaign-create-sop.html">← Attribution 创建 SOP</a>
+    <a href="channel-taxonomy-v1.md">Markdown 全文</a>
+    <a href="channel-taxonomy-v1.json">JSON 种子</a>
+    <a href="channel-taxonomy-v1.xlsx">Excel 导出</a>
+    <a href="amazon-attribution-publishers-v1.html">Publisher 选型</a>
+    <a href="./amazon-attribution-taxonomy-config-demo.html">字典配置 Demo</a>
+    <a href="amazon-attribution-publishers-v1.json">Publisher JSON</a>
+  </p>
+
+  <div class="model-box">
+    <div class="model-card amz"><h3>L0 Amazon</h3><p><code>amazon_channel</code><br/>Search · Social · Video · Email · Display</p></div>
+    <div class="model-card"><h3>L1 营销大类</h3><p><code>strategy_major_code</code><br/>付费搜索 / 付费社交 / 联盟…</p></div>
+    <div class="model-card"><h3>L2 营销子类</h3><p><code>strategy_minor_code</code><br/>效果 / 红人 / 品牌帖…</p></div>
+    <div class="model-card"><h3>Publisher</h3><p><code>publisher_name</code><br/>Google · Facebook · Instagram…</p></div>
+  </div>
+
+  <section id="amazon-5">
+    <h2>L0 · 亚马逊 Channel（Console 五选一）</h2>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:14px">与 Attribution 创建页 Channel 下拉一致；<strong>Google / Facebook / Instagram</strong> 填 Publisher，不填 Channel。</p>
+    <div class="az-strip"><span class="az-pill"><strong>Search</strong> <code>search</code></span><span class="az-pill"><strong>Social</strong> <code>social</code></span><span class="az-pill"><strong>Video</strong> <code>video</code></span><span class="az-pill"><strong>Email</strong> <code>email</code></span><span class="az-pill"><strong>Display</strong> <code>display</code></span></div>
+  </section>
+  <section id="wizard">
+    <h2>创建向导顺序（v1.2）</h2>
+    <ol style="font-size:13px;color:var(--txt2);margin-left:20px;line-height:1.8">
+      <li><strong>Amazon Channel</strong>（5 选 1）</li>
+      <li><strong>营销大类</strong> → <strong>营销子类</strong>（按 Channel 过滤）</li>
+      <li><strong>Publisher</strong> + <code>paid_flag</code>（红人）</li>
+      <li>生成 <code>canonical_name</code></li>
+    </ol>
+  </section>
+
+  <section id="ch-search">
+    <h2>Search · 搜索 <code>search</code></h2>
+
+    <div class="major-block p0">
+      <div class="major-head">
+        <h3>付费搜索 <code>paid_search</code></h3>
+        <span class="tag p0">P0</span><span class="tag bulk">Bulk</span>
+        <span class="meta-inline">营销大类 · 短码 <code>PS</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="p0-row"><td><code>ps_performance</code></td><td>效果/转化</td><td><code>PSPF</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Google, Microsoft Advertising</td></tr>
+          <tr class="p0-row"><td><code>ps_brand</code></td><td>品牌词</td><td><code>PSBR</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Google</td></tr>
+          <tr class="dim"><td><code>ps_competitor</code></td><td>竞品词</td><td><code>PSCP</code></td><td>扩展</td><td style="font-size:11px">Google</td></tr>
+          <tr class="p0-row"><td><code>ps_generic</code></td><td>通用</td><td><code>PSGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Google, Microsoft Advertising</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="major-block ext">
+      <div class="major-head">
+        <h3>付费购物广告 <code>paid_shopping</code></h3>
+        <span class="tag ext">扩展</span>
+        <span class="meta-inline">营销大类 · 短码 <code>PSh</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="p0-row"><td><code>pshop_generic</code></td><td>通用</td><td><code>PShGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Google, Pinterest</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section id="ch-social">
+    <h2>Social · 社交 <code>social</code></h2>
+
+    <div class="major-block p0">
+      <div class="major-head">
+        <h3>付费社交 <code>paid_social</code></h3>
+        <span class="tag p0">P0</span><span class="tag bulk">Bulk</span>
+        <span class="meta-inline">营销大类 · 短码 <code>PSo</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="p0-row"><td><code>psoc_performance</code></td><td>效果广告</td><td><code>PSoPF</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Facebook, Instagram, TikTok</td></tr>
+          <tr class="dim"><td><code>psoc_reach</code></td><td>曝光/触达</td><td><code>PSoRH</code></td><td>扩展</td><td style="font-size:11px">Facebook, Instagram</td></tr>
+          <tr class="p0-row"><td><code>psoc_retargeting</code></td><td>再营销</td><td><code>PSoRT</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Facebook, Instagram</td></tr>
+          <tr class="p0-row"><td><code>psoc_influencer</code></td><td>付费红人 · paid_flag=true</td><td><code>PSoINF</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">New: KOL名, Instagram, TikTok, YouTube</td></tr>
+          <tr class="p0-row"><td><code>psoc_generic</code></td><td>通用</td><td><code>PSoGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Facebook, Instagram</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="major-block p0">
+      <div class="major-head">
+        <h3>自然社交 <code>organic_social</code></h3>
+        <span class="tag p0">P0</span>
+        <span class="meta-inline">营销大类 · 短码 <code>OSo</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="p0-row"><td><code>osoc_brand_owned</code></td><td>品牌自有社媒</td><td><code>OSoBO</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Instagram, Facebook, TikTok</td></tr>
+          <tr class="p0-row"><td><code>osoc_influencer</code></td><td>自然红人</td><td><code>OSoINF</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">New: KOL名</td></tr>
+          <tr class="dim"><td><code>osoc_ugc</code></td><td>UGC</td><td><code>OSoUGC</code></td><td>扩展</td><td style="font-size:11px">Instagram, TikTok</td></tr>
+          <tr class="dim"><td><code>osoc_community</code></td><td>社群/论坛</td><td><code>OSoCOM</code></td><td>扩展</td><td style="font-size:11px">Reddit, Facebook Groups</td></tr>
+          <tr class="p0-row"><td><code>osoc_generic</code></td><td>通用</td><td><code>OSoGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Instagram, Facebook</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="major-block p0">
+      <div class="major-head">
+        <h3>联盟/分销 <code>affiliate</code></h3>
+        <span class="tag p0">P0</span>
+        <span class="meta-inline">营销大类 · 短码 <code>AFF</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="p0-row"><td><code>aff_network</code></td><td>联盟网络</td><td><code>AFFNET</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Levanta, Impact, ShareASale</td></tr>
+          <tr class="p0-row"><td><code>aff_creator</code></td><td>达人分销</td><td><code>AFFCR</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Creator Connections, New: 平台名</td></tr>
+          <tr class="dim"><td><code>aff_deal_site</code></td><td>导购/Deal</td><td><code>AFFDL</code></td><td>扩展</td><td style="font-size:11px">New: Deal站名</td></tr>
+          <tr class="p0-row"><td><code>aff_generic</code></td><td>通用</td><td><code>AFFGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Levanta</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="major-block ext">
+      <div class="major-head">
+        <h3>其他付费（社交类） <code>paid_other</code></h3>
+        <span class="tag ext">扩展</span>
+        <span class="meta-inline">营销大类 · 短码 <code>PO</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="p0-row"><td><code>pother_generic</code></td><td>通用</td><td><code>POGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">New</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section id="ch-display">
+    <h2>Display · 展示 <code>display</code></h2>
+
+    <div class="major-block ext">
+      <div class="major-head">
+        <h3>展示/程序化 <code>display</code></h3>
+        <span class="tag ext">扩展</span>
+        <span class="meta-inline">营销大类 · 短码 <code>DSP</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="dim"><td><code>dsp_programmatic</code></td><td>程序化</td><td><code>DSPPG</code></td><td>扩展</td><td style="font-size:11px">The Trade Desk, DV360, New</td></tr>
+          <tr class="dim"><td><code>dsp_retargeting</code></td><td>再营销展示</td><td><code>DSPRT</code></td><td>扩展</td><td style="font-size:11px">Criteo, AdRoll</td></tr>
+          <tr class="dim"><td><code>dsp_awareness</code></td><td>品牌曝光</td><td><code>DSPAW</code></td><td>扩展</td><td style="font-size:11px">New</td></tr>
+          <tr class="p0-row"><td><code>dsp_generic</code></td><td>通用</td><td><code>DSPGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">New</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="major-block ext">
+      <div class="major-head">
+        <h3>跨网络智能 <code>cross_network</code></h3>
+        <span class="tag ext">扩展</span>
+        <span class="meta-inline">营销大类 · 短码 <code>XN</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="dim"><td><code>xnet_pmax</code></td><td>Performance Max</td><td><code>XNPM</code></td><td>扩展</td><td style="font-size:11px">Google</td></tr>
+          <tr class="p0-row"><td><code>xnet_generic</code></td><td>通用</td><td><code>XNGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Google</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section id="ch-video">
+    <h2>Video · 视频 <code>video</code></h2>
+
+    <div class="major-block ext">
+      <div class="major-head">
+        <h3>付费视频 <code>paid_video</code></h3>
+        <span class="tag ext">扩展</span>
+        <span class="meta-inline">营销大类 · 短码 <code>PV</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="dim"><td><code>pv_instream</code></td><td>插片/流媒体</td><td><code>PVINS</code></td><td>扩展</td><td style="font-size:11px">YouTube, Hulu</td></tr>
+          <tr class="dim"><td><code>pv_social_video</code></td><td>社交视频广告</td><td><code>PVSV</code></td><td>扩展</td><td style="font-size:11px">YouTube, TikTok</td></tr>
+          <tr class="p0-row"><td><code>pv_generic</code></td><td>通用</td><td><code>PVGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">YouTube</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="major-block ext">
+      <div class="major-head">
+        <h3>自然视频 <code>organic_video</code></h3>
+        <span class="tag ext">扩展</span>
+        <span class="meta-inline">营销大类 · 短码 <code>OV</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="dim"><td><code>ov_creator</code></td><td>创作者自然视频</td><td><code>OVCR</code></td><td>扩展</td><td style="font-size:11px">YouTube, TikTok</td></tr>
+          <tr class="p0-row"><td><code>ov_generic</code></td><td>通用</td><td><code>OVGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">YouTube</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section id="ch-email">
+    <h2>Email · 邮件 <code>email</code></h2>
+
+    <div class="major-block ext">
+      <div class="major-head">
+        <h3>邮件营销 <code>email</code></h3>
+        <span class="tag ext">扩展</span>
+        <span class="meta-inline">营销大类 · 短码 <code>EML</code></span>
+      </div>
+      <table>
+        <thead><tr><th>营销子类码</th><th>中文</th><th>name_short</th><th>向导</th><th>典型 Publisher</th></tr></thead>
+        <tbody>
+          <tr class="dim"><td><code>em_newsletter</code></td><td>Newsletter</td><td><code>EMLNL</code></td><td>扩展</td><td style="font-size:11px">Klaviyo, Mailchimp</td></tr>
+          <tr class="p0-row"><td><code>em_promo</code></td><td>促销单发</td><td><code>EMLPR</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Klaviyo, Internal</td></tr>
+          <tr class="dim"><td><code>em_lifecycle</code></td><td>生命周期</td><td><code>EMLLC</code></td><td>扩展</td><td style="font-size:11px">Klaviyo</td></tr>
+          <tr class="p0-row"><td><code>em_generic</code></td><td>通用</td><td><code>EMLGEN</code></td><td><span class="pill-p0">P0</span></td><td style="font-size:11px">Klaviyo, Mailchimp</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section id="legacy">
+    <h2>旧口径迁移</h2>
+    <div class="legacy-table">
+      <table>
+        <thead><tr><th>旧 channel_type</th><th>amazon_channel</th><th>营销大类</th><th>营销子类</th><th>paid_flag</th></tr></thead>
+        <tbody>
+          <tr><td><code>KOL</code></td><td><code>social</code></td><td><code>paid_social</code></td><td><code>psoc_influencer</code></td><td>true</td></tr>
+          <tr><td><code>SNS</code></td><td><code>social</code></td><td><code>organic_social</code></td><td><code>osoc_brand_owned</code></td><td>false</td></tr>
+          <tr><td><code>Paid-Search</code></td><td><code>search</code></td><td><code>paid_search</code></td><td><code>ps_generic</code></td><td>true</td></tr>
+          <tr><td><code>Paid-Social</code></td><td><code>social</code></td><td><code>paid_social</code></td><td><code>psoc_performance</code></td><td>true</td></tr>
+          <tr><td><code>Display</code></td><td><code>display</code></td><td><code>display</code></td><td><code>dsp_generic</code></td><td>true</td></tr>
+          <tr><td><code>Video</code></td><td><code>video</code></td><td><code>paid_video</code></td><td><code>pv_generic</code></td><td>true</td></tr>
+          <tr><td><code>Email</code></td><td><code>email</code></td><td><code>email</code></td><td><code>em_generic</code></td><td>false</td></tr>
+          <tr><td><code>Other</code></td><td><code>social</code></td><td><code>paid_other</code></td><td><code>pother_generic</code></td><td>true</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <footer class="doc-footer">v1.2 · 2026-05-19 · 作者：@beynawoo-code</footer>
+</body>
+</html>

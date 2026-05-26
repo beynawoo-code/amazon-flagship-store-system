@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>亚马逊品牌旗舰店运营工作流程</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --ink: #162033;
+      --muted: #687589;
+      --line: #d9e2ef;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --orange: #f59e0b;
+      --purple: #7c3aed;
+      --red: #dc2626;
+      --shadow: 0 18px 45px rgba(29, 41, 57, 0.08);
+      --radius: 18px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.14), transparent 26rem),
+        radial-gradient(circle at 88% 18%, rgba(22, 163, 74, 0.12), transparent 24rem),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 36px 24px 56px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: -0.05em;
+      line-height: 1.08;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+      max-width: 820px;
+    }
+
+    .meta-card {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(217, 226, 239, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .meta-card strong {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .flow {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 16px;
+      margin: 26px 0;
+    }
+
+    .flow::before {
+      content: "";
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 38px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--green), var(--orange), var(--purple), var(--red));
+      border-radius: 99px;
+      opacity: 0.55;
+      z-index: 0;
+    }
+
+    .step {
+      position: relative;
+      z-index: 1;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px 16px 16px;
+      box-shadow: var(--shadow);
+      min-height: 220px;
+    }
+
+    .num {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 800;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.2);
+    }
+
+    .step:nth-child(1) .num { background: var(--blue); }
+    .step:nth-child(2) .num { background: var(--green); }
+    .step:nth-child(3) .num { background: var(--orange); }
+    .step:nth-child(4) .num { background: var(--purple); }
+    .step:nth-child(5) .num { background: var(--red); }
+
+    .step h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .step p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #344054;
+      font-size: 13px;
+      line-height: 1.72;
+    }
+
+    .section-title {
+      margin: 34px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 6px;
+      height: 22px;
+      border-radius: 99px;
+      background: var(--blue);
+    }
+
+    .swimlane {
+      display: grid;
+      grid-template-columns: 170px repeat(5, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .cell {
+      min-height: 92px;
+      padding: 14px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .cell:nth-child(6n) {
+      border-right: 0;
+    }
+
+    .lane-head {
+      background: #f8fafc;
+      font-weight: 800;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+    }
+
+    .phase-head {
+      background: #eef4ff;
+      font-weight: 800;
+      color: #1d4ed8;
+      text-align: center;
+      min-height: auto;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      margin: 3px 3px 3px 0;
+      padding: 5px 8px;
+      border-radius: 8px;
+      background: #f2f4f7;
+      color: #344054;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .mini {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .mini h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .mini p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .loop {
+      margin-top: 22px;
+      padding: 18px 20px;
+      border: 1px dashed #93c5fd;
+      border-radius: var(--radius);
+      background: rgba(239, 246, 255, 0.85);
+      color: #1e3a8a;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    @media (max-width: 1080px) {
+      header {
+        grid-template-columns: 1fr;
+      }
+
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .flow::before {
+        display: none;
+      }
+
+      .swimlane {
+        grid-template-columns: 140px repeat(5, 220px);
+        overflow-x: auto;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <h1>亚马逊品牌旗舰店运营工作流程</h1>
+        <p class="subtitle">
+          用一个可视化流程把运营动作串起来：先定义目标和页面结构，再准备内容、搭建发布、承接流量，最后用 Store Insights / ASIN Engagement / 广告数据持续复盘优化。
+        </p>
+      </div>
+      <aside class="meta-card">
+        <strong>适用范围</strong>
+        <div class="tags">
+          <span class="tag">Amazon Store</span>
+          <span class="tag">多站点运营</span>
+          <span class="tag">页面改版</span>
+          <span class="tag">数据看板</span>
+          <span class="tag">大促复盘</span>
+        </div>
+      </aside>
+    </header>
+
+    <section class="flow" aria-label="核心流程">
+      <article class="step">
+        <div class="num">1</div>
+        <h2>目标设定</h2>
+        <p>先明确旗舰店本轮运营目的，避免页面只是素材堆叠。</p>
+        <ul>
+          <li>曝光、转化、新品、大促</li>
+          <li>站点与品牌范围</li>
+          <li>核心 KPI 与对比周期</li>
+        </ul>
+      </article>
+
+      <article class="step">
+        <div class="num">2</div>
+        <h2>页面规划</h2>
+        <p>设计店铺信息架构、页面层级与模块分类。</p>
+        <ul>
+          <li>首页 / 品类页 / 活动页</li>
+          <li>公共 / 空间 / 品类 / 生活方式</li>
+          <li>模块顺序与主推 ASIN</li>
+        </ul>
+      </article>
+
+      <article class="step">
+        <div class="num">3</div>
+        <h2>素材搭建</h2>
+        <p>完成图片、视频、文案、商品与 CTA 的落位。</p>
+        <ul>
+          <li>Banner、场景图、视频</li>
+          <li>商品网格与链接</li>
+          <li>合规检查与移动端预览</li>
+        </ul>
+      </article>
+
+      <article class="step">
+        <div class="num">4</div>
+        <h2>发布引流</h2>
+        <p>在后台提交审核并上线，同时配置流量入口。</p>
+        <ul>
+          <li>提交审核、驳回修改</li>
+          <li>SB 广告落地页</li>
+          <li>Tag、活动链接与版本记录</li>
+        </ul>
+      </article>
+
+      <article class="step">
+        <div class="num">5</div>
+        <h2>分析迭代</h2>
+        <p>用数据定位流量、承接、商品与内容结构问题。</p>
+        <ul>
+          <li>按日、按页、按来源</li>
+          <li>ASIN 参与度漏斗</li>
+          <li>同比、环比、改版前后对比</li>
+        </ul>
+      </article>
+    </section>
+
+    <h2 class="section-title">角色协同泳道</h2>
+    <section class="swimlane" aria-label="角色协同泳道">
+      <div class="cell lane-head">阶段</div>
+      <div class="cell phase-head">目标设定</div>
+      <div class="cell phase-head">页面规划</div>
+      <div class="cell phase-head">素材搭建</div>
+      <div class="cell phase-head">发布引流</div>
+      <div class="cell phase-head">分析迭代</div>
+
+      <div class="cell lane-head">运营</div>
+      <div class="cell">确定目标、站点、活动节奏与主推款。</div>
+      <div class="cell">定义页面结构、模块顺序、ASIN 分布。</div>
+      <div class="cell">验收文案、链接、价格、库存与促销信息。</div>
+      <div class="cell">提交审核、协调广告与活动入口。</div>
+      <div class="cell">输出问题清单、优化动作与负责人。</div>
+
+      <div class="cell lane-head">设计 / 内容</div>
+      <div class="cell">理解品牌主张与用户场景。</div>
+      <div class="cell">拆分公共、空间、品类、生活方式模块。</div>
+      <div class="cell">制作 Banner、视频、场景图与 CTA。</div>
+      <div class="cell">按驳回原因调整素材。</div>
+      <div class="cell">基于跳出、停留、点击反馈调整素材。</div>
+
+      <div class="cell lane-head">广告 / 增长</div>
+      <div class="cell">确认预算、投放目标与渠道组合。</div>
+      <div class="cell">选择广告落地页与活动页。</div>
+      <div class="cell">配置追踪 Tag 与 Campaign 命名。</div>
+      <div class="cell">投放 SB，区分 ADS / ORGANIC / OTHER。</div>
+      <div class="cell">分析进店成本、来源质量与转化贡献。</div>
+
+      <div class="cell lane-head">数据 / 系统</div>
+      <div class="cell">定义指标口径与对比规则。</div>
+      <div class="cell">维护 page_id、module_id、asin 映射。</div>
+      <div class="cell">记录 layout_version 与上线计划。</div>
+      <div class="cell">采集 Insights、ASIN Metrics、广告报表。</div>
+      <div class="cell">出看板、异常监控、周/月复盘报表。</div>
+    </section>
+
+    <h2 class="section-title">关键数据视角</h2>
+    <section class="cards">
+      <article class="mini">
+        <h3>Store Insights</h3>
+        <p>
+          按日、按页、按来源查看 VISITS、VIEWS、BOUNCE_RATE、DWELL_TIME、ORDERS、UNITS、SALES，用于判断页面承接与整体趋势。
+        </p>
+      </article>
+      <article class="mini">
+        <h3>ASIN Engagement</h3>
+        <p>
+          关注 RENDERS、VIEWS、CLICKS、ADD_TO_CARTS、ORDERS、UNITS，定位主推商品是否被看到、被点击、被转化。
+        </p>
+      </article>
+      <article class="mini">
+        <h3>版本与复盘</h3>
+        <p>
+          每次改版记录 layout_version、上线时间、模块分类、主推 ASIN，并支持改版前后、同比、环比、大促窗口对比。
+        </p>
+      </article>
+    </section>
+
+    <div class="loop">
+      标准闭环：目标设定 → 页面规划 → 素材搭建 → 发布引流 → 数据分析 → 优化迭代 → 下一轮版本
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>亚马逊旗舰店子系统 · L1 业务能力架构 v0.1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07090f;
+      --bg-card: #0e1422;
+      --bg-el: #141b2e;
+      --bg-pill: #1a2238;
+      --border: rgba(255,255,255,.07);
+      --border-hi: rgba(100,180,255,.25);
+      --txt: #dde6f5;
+      --txt2: #7a90b0;
+      --txt3: #4a5e78;
+
+      --blue: #3b82f6;
+      --blue-glow: rgba(59,130,246,.18);
+      --green: #22c55e;
+      --green-glow: rgba(34,197,94,.15);
+      --purple: #a855f7;
+      --purple-glow: rgba(168,85,247,.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245,158,11,.12);
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6,182,212,.15);
+      --red: #ef4444;
+      --orange: #f97316;
+      --yellow: #facc15;
+      --pink: #ec4899;
+
+      --r: 10px;
+      --r-lg: 18px;
+      --rx: 24px;
+      --font: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+    html { font-size: 14px; scroll-behavior: smooth }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--txt);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 40px 50px 80px;
+      min-width: 1280px;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px }
+    ::-webkit-scrollbar-track { background: transparent }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px }
+
+    /* ───── PAGE HEADER ───── */
+    .page-header { text-align: center; margin-bottom: 44px; }
+    .page-header .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; border-radius: 99px;
+      background: var(--blue-glow);
+      border: 1px solid rgba(59,130,246,.3);
+      font-size: 11px; font-weight: 700; color: var(--blue);
+      letter-spacing: .08em; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .page-header h1 {
+      font-size: 36px; font-weight: 900; letter-spacing: -.04em;
+      background: linear-gradient(135deg, #e8ecf4 0%, #7eb3ff 50%, #c084fc 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .page-header p { font-size: 14px; color: var(--txt2); max-width: 760px; margin: 0 auto; }
+
+    /* ───── BOUNDARY CALLOUT ───── */
+    .boundary-callout {
+      padding: 16px 22px;
+      border-radius: var(--r-lg);
+      background: linear-gradient(135deg, rgba(59,130,246,.08) 0%, rgba(168,85,247,.06) 100%);
+      border: 1px solid rgba(59,130,246,.25);
+      margin-bottom: 40px;
+    }
+    .boundary-callout .bc-title {
+      font-size: 12px; font-weight: 800; color: var(--blue);
+      text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px;
+    }
+    .boundary-callout p { font-size: 12.5px; color: var(--txt2); line-height: 1.7; }
+    .boundary-callout b { color: var(--txt); }
+
+    /* ───── SECTION HEADER ───── */
+    .sec-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 26px;
+    }
+    .sec-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; flex-shrink: 0;
+      color: #fff;
+    }
+    .sec-num.n1 { background: linear-gradient(135deg, var(--blue), var(--purple)); }
+    .sec-num.n2 { background: linear-gradient(135deg, var(--cyan), var(--blue)); }
+    .sec-num.n3 { background: linear-gradient(135deg, var(--purple), var(--orange)); }
+    .sec-num.n4 { background: linear-gradient(135deg, var(--green), var(--cyan)); }
+    .sec-num.n5 { background: linear-gradient(135deg, var(--yellow), var(--orange)); }
+    .sec-num.n6 { background: linear-gradient(135deg, var(--orange), var(--red)); }
+    .sec-num.n7 { background: linear-gradient(135deg, var(--pink), var(--purple)); }
+    .sec-title { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+    .sec-desc { font-size: 13px; color: var(--txt2); margin-top: 2px; }
+
+    /* ───── 1 · DESIGN PRINCIPLES ───── */
+    .principles-section { margin-bottom: 56px; }
+    .principles-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    }
+    .principle-card {
+      padding: 18px 18px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      transition: all .2s;
+    }
+    .principle-card:hover {
+      border-color: var(--border-hi);
+      transform: translateY(-2px);
+    }
+    .principle-num {
+      display: inline-block;
+      font-size: 28px; font-weight: 900;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      line-height: 1; margin-bottom: 10px;
+    }
+    .principle-title { font-size: 13px; font-weight: 800; color: var(--txt); margin-bottom: 6px; }
+    .principle-desc { font-size: 11.5px; color: var(--txt2); line-height: 1.65; }
+    .principle-desc code {
+      color: var(--yellow); font-family: monospace; font-size: 11px;
+      background: rgba(250,204,21,.08); padding: 1px 4px; border-radius: 3px;
+    }
+
+    /* ───── 2 · CAPABILITY MAP ───── */
+    .capmap-section { margin-bottom: 64px; }
+    .capmap-grid {
+      display: grid; grid-template-columns: 200px 1fr 240px; gap: 18px;
+      align-items: stretch;
+    }
+    .capmap-col {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .capmap-col-title {
+      font-size: 11px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--txt3);
+      text-align: center; margin-bottom: 4px;
+    }
+    .ext-node {
+      padding: 12px 14px;
+      border-radius: var(--r);
+      border: 1px solid;
+      transition: all .2s;
+    }
+    .ext-node:hover { transform: translateY(-1px); }
+    .ext-node h5 { font-size: 12px; font-weight: 800; margin-bottom: 3px; }
+    .ext-node p { font-size: 10.5px; color: var(--txt2); line-height: 1.5; }
+    .ext-node.src {
+      background: linear-gradient(135deg, rgba(245,158,11,.06), rgba(245,158,11,.02));
+      border-color: rgba(245,158,11,.25);
+    }
+    .ext-node.src h5 { color: var(--amber); }
+    .ext-node.peer {
+      background: linear-gradient(135deg, rgba(34,197,94,.06), rgba(34,197,94,.02));
+      border-color: rgba(34,197,94,.25);
+    }
+    .ext-node.peer h5 { color: var(--green); }
+    .ext-node.domain {
+      background: linear-gradient(135deg, rgba(250,204,21,.08), rgba(250,204,21,.02));
+      border-color: rgba(250,204,21,.35);
+    }
+    .ext-node.domain h5 { color: var(--yellow); }
+
+    .capmap-center {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+    }
+    .domain-card {
+      border-radius: var(--r-lg);
+      padding: 16px 16px 18px;
+      border: 1px solid;
+      position: relative;
+      overflow: hidden;
+    }
+    .domain-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+    }
+    .domain-card.d1 { background: linear-gradient(135deg, rgba(59,130,246,.08), rgba(59,130,246,.02)); border-color: rgba(59,130,246,.3); }
+    .domain-card.d1::before { background: linear-gradient(90deg, var(--blue), transparent); }
+    .domain-card.d2 { background: linear-gradient(135deg, rgba(34,197,94,.08), rgba(34,197,94,.02)); border-color: rgba(34,197,94,.3); }
+    .domain-card.d2::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .domain-card.d3 { background: linear-gradient(135deg, rgba(168,85,247,.08), rgba(168,85,247,.02)); border-color: rgba(168,85,247,.3); }
+    .domain-card.d3::before { background: linear-gradient(90deg, var(--purple), transparent); }
+    .domain-card.d4 { background: linear-gradient(135deg, rgba(249,115,22,.08), rgba(249,115,22,.02)); border-color: rgba(249,115,22,.3); }
+    .domain-card.d4::before { background: linear-gradient(90deg, var(--orange), transparent); }
+
+    .domain-head {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .domain-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .d1 .domain-num { background: var(--blue); }
+    .d2 .domain-num { background: var(--green); }
+    .d3 .domain-num { background: var(--purple); }
+    .d4 .domain-num { background: var(--orange); }
+    .domain-title { font-size: 14px; font-weight: 800; }
+    .domain-user {
+      font-size: 10px; font-weight: 700; padding: 2px 8px;
+      border-radius: 99px; margin-left: auto;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      color: var(--txt2);
+    }
+    .domain-cap {
+      padding: 7px 10px; border-radius: 6px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      font-size: 11px; color: var(--txt);
+      margin-bottom: 5px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .domain-cap:last-child { margin-bottom: 0; }
+    .domain-cap .cap-id {
+      font-size: 9px; font-weight: 800; color: var(--txt3);
+      font-family: monospace; flex-shrink: 0;
+    }
+    .domain-cap .cap-name { flex: 1; font-weight: 600; }
+    .domain-cap .mvp-badge {
+      font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px;
+      flex-shrink: 0;
+    }
+    .mvp-p0 { background: rgba(34,197,94,.18); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+    .mvp-p1 { background: rgba(249,115,22,.15); color: var(--orange); border: 1px solid rgba(249,115,22,.3); }
+
+    /* ───── 3 · CAPABILITY DETAIL ───── */
+    .detail-section { margin-bottom: 56px; }
+    .detail-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 22px 24px 24px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .detail-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+    }
+    .detail-card.dc1 { border-left: 3px solid var(--blue); }
+    .detail-card.dc1::before { background: linear-gradient(90deg, var(--blue), transparent); }
+    .detail-card.dc2 { border-left: 3px solid var(--green); }
+    .detail-card.dc2::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .detail-card.dc3 { border-left: 3px solid var(--purple); }
+    .detail-card.dc3::before { background: linear-gradient(90deg, var(--purple), transparent); }
+    .detail-card.dc4 { border-left: 3px solid var(--orange); }
+    .detail-card.dc4::before { background: linear-gradient(90deg, var(--orange), transparent); }
+
+    .detail-head {
+      display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .detail-domain-num {
+      font-size: 22px; font-weight: 900;
+      line-height: 1;
+    }
+    .dc1 .detail-domain-num { color: var(--blue); }
+    .dc2 .detail-domain-num { color: var(--green); }
+    .dc3 .detail-domain-num { color: var(--purple); }
+    .dc4 .detail-domain-num { color: var(--orange); }
+
+    .detail-title { font-size: 17px; font-weight: 800; color: var(--txt); }
+    .detail-en { font-size: 12px; color: var(--txt3); font-weight: 600; }
+    .detail-user {
+      margin-left: auto;
+      font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 99px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      color: var(--txt);
+    }
+    .detail-position {
+      font-size: 12px; color: var(--txt2);
+      padding: 10px 14px;
+      background: rgba(255,255,255,.02);
+      border-left: 2px solid var(--border-hi);
+      border-radius: 0 6px 6px 0;
+      margin: 12px 0 18px;
+      line-height: 1.6;
+    }
+    .detail-position b { color: var(--txt); }
+
+    .cap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .cap-table th {
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--txt3);
+      padding: 10px 12px; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .cap-table th.mvp-col { text-align: center; width: 60px; }
+    .cap-table td {
+      padding: 11px 12px; color: var(--txt2);
+      border-bottom: 1px solid rgba(255,255,255,.03);
+      vertical-align: top;
+    }
+    .cap-table tr:last-child td { border-bottom: none; }
+    .cap-table td.mvp-col { text-align: center; }
+    .cap-table b.cap-code {
+      color: var(--txt); font-family: monospace; font-size: 11.5px;
+    }
+    .cap-table .cap-name-cell {
+      color: var(--txt); font-weight: 700; display: block; margin-top: 2px; font-family: var(--font);
+    }
+    .detail-decision {
+      margin-top: 14px; padding: 10px 14px;
+      background: rgba(250,204,21,.05);
+      border: 1px solid rgba(250,204,21,.2);
+      border-radius: 8px;
+      font-size: 11.5px; color: var(--txt2); line-height: 1.6;
+    }
+    .detail-decision b { color: var(--yellow); }
+
+    /* ───── 4 · METRIC TABLE ───── */
+    .metric-section { margin-bottom: 56px; }
+    .metric-table {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+    .metric-table table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .metric-table th {
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--txt3);
+      padding: 12px 16px; text-align: left;
+      background: rgba(255,255,255,.02);
+      border-bottom: 1px solid var(--border);
+    }
+    .metric-table th.center { text-align: center; }
+    .metric-table td {
+      padding: 11px 16px; color: var(--txt2);
+      border-bottom: 1px solid rgba(255,255,255,.03);
+    }
+    .metric-table tr:last-child td { border-bottom: none; }
+    .metric-table td.center { text-align: center; }
+    .metric-table b { color: var(--txt); }
+    .metric-table code {
+      color: var(--cyan); font-family: monospace; font-size: 11.5px;
+      background: rgba(6,182,212,.06); padding: 1px 6px; border-radius: 4px;
+    }
+    .agg-pill {
+      display: inline-block;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 99px;
+    }
+    .agg-pill.sum { background: var(--green-glow); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+    .agg-pill.recalc { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(245,158,11,.3); }
+    .agg-pill.avg { background: var(--purple-glow); color: var(--purple); border: 1px solid rgba(168,85,247,.3); }
+
+    .metric-note {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: rgba(245,158,11,.05);
+      border: 1px solid rgba(245,158,11,.2);
+      border-radius: 8px;
+      font-size: 11.5px; color: var(--txt2); line-height: 1.6;
+    }
+    .metric-note b { color: var(--amber); }
+
+    /* ───── 5 · ROLE MATRIX ───── */
+    .matrix-section { margin-bottom: 56px; }
+    .matrix-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    }
+    .matrix-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 18px 18px 20px;
+      transition: all .2s;
+    }
+    .matrix-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+    .matrix-card.m1 { border-left: 3px solid var(--blue); }
+    .matrix-card.m2 { border-left: 3px solid var(--green); }
+    .matrix-card.m3 { border-left: 3px solid var(--purple); }
+    .matrix-card.m4 { border-left: 3px solid var(--orange); }
+
+    .matrix-head { font-size: 13px; font-weight: 800; margin-bottom: 12px; }
+    .m1 .matrix-head { color: var(--blue); }
+    .m2 .matrix-head { color: var(--green); }
+    .m3 .matrix-head { color: var(--purple); }
+    .m4 .matrix-head { color: var(--orange); }
+
+    .matrix-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      font-size: 11.5px;
+    }
+    .matrix-row:last-child { border-bottom: none; }
+    .matrix-row .mr-label { color: var(--txt3); }
+    .matrix-row .mr-value { color: var(--txt); font-weight: 700; }
+    .matrix-totals {
+      display: flex; gap: 8px; margin-top: 12px;
+      padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .matrix-totals .total-pill {
+      flex: 1; text-align: center;
+      padding: 6px 8px; border-radius: 8px;
+      font-size: 11px; font-weight: 700;
+    }
+    .total-pill.p0 { background: var(--green-glow); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+    .total-pill.p1 { background: rgba(249,115,22,.12); color: var(--orange); border: 1px solid rgba(249,115,22,.3); }
+
+    /* ───── 6 · INTERFACE CONTRACTS ───── */
+    .iface-section { margin-bottom: 56px; }
+    .iface-table {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+    .iface-table table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .iface-table th {
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--txt3);
+      padding: 12px 16px; text-align: left;
+      background: rgba(255,255,255,.02);
+      border-bottom: 1px solid var(--border);
+    }
+    .iface-table td {
+      padding: 11px 16px; color: var(--txt2);
+      border-bottom: 1px solid rgba(255,255,255,.03);
+    }
+    .iface-table tr:last-child td { border-bottom: none; }
+    .iface-table b { color: var(--txt); }
+    .iface-table code {
+      color: var(--yellow); font-family: monospace; font-size: 11px;
+      background: rgba(250,204,21,.06); padding: 1px 6px; border-radius: 4px;
+    }
+    .dir-in { color: var(--amber); font-weight: 700; }
+    .dir-out { color: var(--purple); font-weight: 700; }
+    .stage-pill {
+      display: inline-block;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 99px;
+    }
+    .stage-pill.p0 { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+    .stage-pill.p1 { background: rgba(249,115,22,.12); color: var(--orange); border: 1px solid rgba(249,115,22,.3); }
+    .stage-pill.todo { background: rgba(74,94,120,.15); color: var(--txt3); border: 1px solid rgba(74,94,120,.3); }
+
+    .iface-note {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: rgba(168,85,247,.05);
+      border: 1px solid rgba(168,85,247,.2);
+      border-radius: 8px;
+      font-size: 11.5px; color: var(--txt2); line-height: 1.6;
+    }
+    .iface-note b { color: var(--purple); }
+
+    /* ───── 7 · L1 → L2 PREVIEW ───── */
+    .preview-section { margin-bottom: 56px; }
+    .preview-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+    }
+    .preview-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 18px 20px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .preview-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; bottom: 0; width: 3px;
+    }
+    .preview-card.pc1::before { background: var(--blue); }
+    .preview-card.pc2::before { background: var(--green); }
+    .preview-card.pc3::before { background: var(--purple); }
+    .preview-card.pc4::before { background: var(--orange); }
+    .preview-card.pc5::before { background: var(--cyan); }
+
+    .preview-head {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .preview-from {
+      font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 4px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .pc1 .preview-from { color: var(--blue); }
+    .pc2 .preview-from { color: var(--green); }
+    .pc3 .preview-from { color: var(--purple); }
+    .pc4 .preview-from { color: var(--orange); }
+    .pc5 .preview-from { color: var(--cyan); }
+    .preview-arrow { color: var(--txt3); font-size: 12px; }
+    .preview-to {
+      font-size: 12px; font-weight: 700; color: var(--txt);
+    }
+    .preview-list { list-style: none; padding-left: 0; }
+    .preview-list li {
+      font-size: 11.5px; color: var(--txt2); line-height: 1.7;
+      padding-left: 14px; position: relative;
+    }
+    .preview-list li::before {
+      content: '▸'; position: absolute; left: 0;
+      color: var(--txt3); font-size: 9px; top: 6px;
+    }
+
+    /* ───── INSIGHTS ───── */
+    .insights {
+      padding: 22px 26px; border-radius: var(--r-lg);
+      background: linear-gradient(135deg, rgba(59,130,246,.08), rgba(168,85,247,.06));
+      border: 1px solid rgba(59,130,246,.2);
+      margin-bottom: 40px;
+    }
+    .insights-title {
+      font-size: 14px; font-weight: 800; color: var(--blue);
+      margin-bottom: 14px;
+    }
+    .insights-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+    }
+    .insights-grid h5 { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+    .insights-grid p { font-size: 11px; color: var(--txt2); line-height: 1.6; }
+
+    /* ───── VERSION ───── */
+    .version-table {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      margin-bottom: 36px;
+    }
+    .version-table table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .version-table th {
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--txt3);
+      padding: 12px 16px; text-align: left;
+      background: rgba(255,255,255,.02);
+      border-bottom: 1px solid var(--border);
+    }
+    .version-table td {
+      padding: 11px 16px; color: var(--txt2);
+      border-bottom: 1px solid rgba(255,255,255,.03);
+    }
+    .version-table tr:last-child td { border-bottom: none; }
+    .version-table b { color: var(--txt); }
+
+    /* ───── FOOTER ───── */
+    .footer { text-align: center; padding: 28px 0; border-top: 1px solid var(--border); }
+    .footer p { font-size: 11px; color: var(--txt3); }
+    .footer a { color: #60a5fa; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<!-- ═════ PAGE HEADER ═════ -->
+<div class="page-header">
+  <div class="badge">📐 L1 Capability Architecture · v0.1 · 2026-04-22</div>
+  <h1>亚马逊旗舰店子系统<br/>L1 业务能力架构 v0.1</h1>
+  <p>本图回答：旗舰店业务流程上有<strong style="color:#93c5fd">哪些能力</strong>？分别归口给<strong style="color:#86efac">哪个角色</strong>？与<strong style="color:#fde68a">哪个外部子系统</strong>交换数据？</p>
+</div>
+
+<!-- ═════ BOUNDARY CALLOUT ═════ -->
+<div class="boundary-callout">
+  <div class="bc-title">📍 L1 范围声明</div>
+  <p><b>本子系统只做</b> Amazon Brand Store 引流与转化的多维分析、Tag 与联盟的全生命周期管理；<br/>
+  <b>不做</b>广告投放执行（归 <code style="color:var(--yellow);font-family:monospace;">amazon-ads-system</code>）、<b>不做</b>订单履约（归 <code style="color:var(--yellow);font-family:monospace;">amazon-sales-system</code>）、<b>不做</b>品牌注册与 Listing 发布。</p>
+</div>
+
+<!-- ═════════════════════════════════
+     1 · 设计原则
+     ═════════════════════════════════ -->
+<div class="sec-header">
+  <div class="sec-num n1">1</div>
+  <div>
+    <div class="sec-title">设计原则（4 条）</div>
+    <div class="sec-desc">围绕旗舰店子系统边界与目标，定义能力层的统一设计原则</div>
+  </div>
+</div>
+
+<div class="principles-section">
+  <div class="principles-grid">
+    <div class="principle-card">
+      <div class="principle-num">01</div>
+      <div class="principle-title">聚焦"引流 → 转化 → 复盘"主航道</div>
+      <div class="principle-desc">所有能力必须能落到这一主航道的某一段；偏离主航道的能力（如 Listing 发布、订单履约）一律归外部子系统。</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-num">02</div>
+      <div class="principle-title">L1 不出现菜单粒度</div>
+      <div class="principle-desc">能力到二级即可（共 14 项）；菜单与角色权限矩阵在 <code>flagship-store_menu_v1.md</code> 的 L2 解决。</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-num">03</div>
+      <div class="principle-title">跨域数据明示边界</div>
+      <div class="principle-desc">与 <code>amazon-sales</code> / <code>amazon-ads</code> / <code>off-site-ads</code> / <code>OC</code> 的接口在能力图中以"虚线"显式标注，禁止默认依赖。</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-num">04</div>
+      <div class="principle-title">能力 = 业务方的语言</div>
+      <div class="principle-desc">统一使用业务语义术语，避免 PM 与研发侧各自定义概念造成沟通偏差。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════
+     2 · 能力地图总览
+     ═════════════════════════════════ -->
+<div class="sec-header">
+  <div class="sec-num n2">2</div>
+  <div>
+    <div class="sec-title">能力地图（4 大能力域 × 14 项二级能力）</div>
+    <div class="sec-desc">三栏布局：左 = 外部数据源 · 中 = 4 大能力域 · 右 = 同仓库相邻子系统 + domain 共享层</div>
+  </div>
+</div>
+
+<div class="capmap-section">
+  <div class="capmap-grid">
+
+    <!-- LEFT · 外部数据源 -->
+    <div class="capmap-col">
+      <div class="capmap-col-title">⬇️ 外部数据源</div>
+      <div class="ext-node src">
+        <h5>Amazon Brand Store</h5>
+        <p>站内流量与转化（SP-API）</p>
+      </div>
+      <div class="ext-node src">
+        <h5>Amazon Attribution</h5>
+        <p>站外归因 Tag 数据</p>
+      </div>
+      <div class="ext-node src">
+        <h5>Amazon Live</h5>
+        <p>官方直播档期与互动</p>
+      </div>
+      <div class="ext-node src">
+        <h5>联盟平台</h5>
+        <p>多家 Affiliate 平台 CSV/Excel</p>
+      </div>
+    </div>
+
+    <!-- CENTER · 4 大能力域 -->
+    <div class="capmap-center">
+      <div class="domain-card d1">
+        <div class="domain-head">
+          <div class="domain-num">1</div>
+          <div class="domain-title">引流归因</div>
+          <span class="domain-user">主用户：CP</span>
+        </div>
+        <div class="domain-cap"><span class="cap-id">C1.1</span><span class="cap-name">Tag 自助创建</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C1.2</span><span class="cap-name">联盟管理</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C1.3</span><span class="cap-name">Live 排期与回流</span><span class="mvp-badge mvp-p1">P1</span></div>
+        <div class="domain-cap"><span class="cap-id">C1.4</span><span class="cap-name">命名规范校验</span><span class="mvp-badge mvp-p0">P0</span></div>
+      </div>
+
+      <div class="domain-card d2">
+        <div class="domain-head">
+          <div class="domain-num">2</div>
+          <div class="domain-title">旗舰店运营</div>
+          <span class="domain-user">主用户：SO</span>
+        </div>
+        <div class="domain-cap"><span class="cap-id">C2.1</span><span class="cap-name">站点-场景维护</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C2.2</span><span class="cap-name">页面-场景映射</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C2.3</span><span class="cap-name">重点品 Hero SKU 标记</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C2.4</span><span class="cap-name">目标管理</span><span class="mvp-badge mvp-p0">P0</span></div>
+      </div>
+
+      <div class="domain-card d3">
+        <div class="domain-head">
+          <div class="domain-num">3</div>
+          <div class="domain-title">数据分析</div>
+          <span class="domain-user">主用户：DA / BO</span>
+        </div>
+        <div class="domain-cap"><span class="cap-id">C3.1</span><span class="cap-name">站点总览看板</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C3.2</span><span class="cap-name">场景与页面看板</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C3.3</span><span class="cap-name">流量组成看板</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C3.4</span><span class="cap-name">品线与 Top SKU 看板</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C3.5</span><span class="cap-name">跨店占比看板</span><span class="mvp-badge mvp-p1">P1</span></div>
+      </div>
+
+      <div class="domain-card d4">
+        <div class="domain-head">
+          <div class="domain-num">4</div>
+          <div class="domain-title">复盘资产</div>
+          <span class="domain-user">主用户：CP / BO</span>
+        </div>
+        <div class="domain-cap"><span class="cap-id">C4.1</span><span class="cap-name">周/月报模板自动化</span><span class="mvp-badge mvp-p1">P1</span></div>
+        <div class="domain-cap"><span class="cap-id">C4.2</span><span class="cap-name">阶段性复盘归档</span><span class="mvp-badge mvp-p1">P1</span></div>
+        <div class="domain-cap"><span class="cap-id">C4.3</span><span class="cap-name">命名规范资产沉淀</span><span class="mvp-badge mvp-p0">P0</span></div>
+        <div class="domain-cap"><span class="cap-id">C4.4</span><span class="cap-name">方法论与 SOP 沉淀</span><span class="mvp-badge mvp-p0">P0</span></div>
+      </div>
+    </div>
+
+    <!-- RIGHT · 相邻子系统 -->
+    <div class="capmap-col">
+      <div class="capmap-col-title">↔️ 相邻子系统</div>
+      <div class="ext-node peer">
+        <h5>amazon-sales-system</h5>
+        <p>销售明细 · ASIN-SKU<br/>用于 C3.5 跨店占比 (P1)</p>
+      </div>
+      <div class="ext-node peer">
+        <h5>amazon-ads-system</h5>
+        <p>SP/SB/SD 投放结果<br/>用于 C3.3 SB 渠道分桶</p>
+      </div>
+      <div class="ext-node peer">
+        <h5>off-site-ads-system</h5>
+        <p>站外付费媒体<br/>与 C1.1 Tag 互补</p>
+      </div>
+      <div class="ext-node peer">
+        <h5>OC 全渠道经营管理</h5>
+        <p>战略层汇总<br/>消费 C4 旗舰店指标快照</p>
+      </div>
+      <div class="ext-node domain">
+        <h5>⭐ src/domain/</h5>
+        <p>主数据 · 字典 · 全局规则<br/>所有跨域必经此层</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═════════════════════════════════
+     3 · 能力域详解
+     ═════════════════════════════════ -->
+<div class="sec-header">
+  <div class="sec-num n3">3</div>
+  <div>
+    <div class="sec-title">4 大能力域详解（含价值描述 / 关键支撑 / MVP）</div>
+    <div class="sec-desc">每域含 4–5 项二级能力 + 业务定位 + 关键决策</div>
+  </div>
+</div>
+
+<div class="detail-section">
+
+  <!-- ① 引流归因 -->
+  <div class="detail-card dc1">
+    <div class="detail-head">
+      <span class="detail-domain-num">①</span>
+      <span class="detail-title">引流归因</span>
+      <span class="detail-en">Inbound &amp; Attribution</span>
+      <span class="detail-user">主用户 · CP（渠道推广）</span>
+    </div>
+    <div class="detail-position">
+      <b>业务定位</b>：把"流量怎么进来 / 怎么追踪 / 怎么算钱"这件事，从 Excel 化人工搬到系统化自动。
+    </div>
+    <table class="cap-table">
+      <thead>
+        <tr>
+          <th style="width:25%;">二级能力</th>
+          <th style="width:35%;">价值描述</th>
+          <th style="width:30%;">关键支撑</th>
+          <th class="mvp-col">MVP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b class="cap-code">C1.1</b><span class="cap-name-cell">Tag 自助创建</span></td>
+          <td>CP 在 ERP 内一站式创建 Amazon Attribution Tag/UTM，按 <code style="color:var(--yellow);font-family:monospace;font-size:11px;">品牌-站点-SKU-渠道-日期</code> 规范自动生成</td>
+          <td>命名校验器 + Attribution API（待评估）</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C1.2</b><span class="cap-name-cell">联盟管理</span></td>
+          <td>多平台 CSV/Excel 导入 → ASIN→SKU 映射 → 自动算佣金（Sales × 比率）/ ROAS / 预算进度</td>
+          <td>导入器插件化、ASIN-SKU 主数据</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C1.3</b><span class="cap-name-cell">Live 排期与回流</span></td>
+          <td>直播档期登记、亚马逊官方直播红人记录、播后数据回流</td>
+          <td>当前手工，P1 接入 SP-API</td>
+          <td class="mvp-col"><span class="agg-pill recalc">P1</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C1.4</b><span class="cap-name-cell">命名规范校验与治理</span></td>
+          <td>历史脏 Tag 治理、新建强约束、违规告警</td>
+          <td>命名规范字典（系统资产）</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="detail-decision">
+      <b>📌 关键决策</b>：联盟属于"站外 Other"，Live 属于"站内"，Tag 属于"站外 Other"。这一分类直接决定看板（C3.3）的渠道分桶。
+    </div>
+  </div>
+
+  <!-- ② 旗舰店运营 -->
+  <div class="detail-card dc2">
+    <div class="detail-head">
+      <span class="detail-domain-num">②</span>
+      <span class="detail-title">旗舰店运营</span>
+      <span class="detail-en">Store Ops</span>
+      <span class="detail-user">主用户 · SO（旗舰店运营）</span>
+    </div>
+    <div class="detail-position">
+      <b>业务定位</b>：维护"站点 → 场景 → 页面 → SKU"这棵 4 层的业务树，所有看板的下钻路径都依赖它。
+    </div>
+    <table class="cap-table">
+      <thead>
+        <tr>
+          <th style="width:25%;">二级能力</th>
+          <th style="width:35%;">价值描述</th>
+          <th style="width:30%;">关键支撑</th>
+          <th class="mvp-col">MVP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b class="cap-code">C2.1</b><span class="cap-name-cell">站点-场景维护</span></td>
+          <td>7 站点（北美 2 + 欧洲 5）× 6 场景（公共/居家/户外/观影/新潮/季节）+ 可扩展（活动场景）</td>
+          <td>场景类型字典（基础/活动）</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C2.2</b><span class="cap-name-cell">页面-场景映射</span></td>
+          <td>每个 Brand Store 页面归属唯一场景，新建 / 变更 / 历史快照</td>
+          <td><b style="color:var(--green);">映射版本快照表</b>（按月固化）</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C2.3</b><span class="cap-name-cell">重点品 Hero SKU 标记</span></td>
+          <td>SO 手动标记某 SKU 为"重点品"，看板自动汇总</td>
+          <td>SKU 维度元数据</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C2.4</b><span class="cap-name-cell">目标管理</span></td>
+          <td>月度 / 季度 / 年度目标（Sales 60% + CTR 20% + ADT 15% + UPT 5%）维护与达成跟踪</td>
+          <td>目标表（站点 × 维度 × 周期）</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ③ 数据分析 -->
+  <div class="detail-card dc3">
+    <div class="detail-head">
+      <span class="detail-domain-num">③</span>
+      <span class="detail-title">数据分析</span>
+      <span class="detail-en">Insight</span>
+      <span class="detail-user">主用户 · DA / BO（数据分析师 / 业务负责人）</span>
+    </div>
+    <div class="detail-position">
+      <b>业务定位</b>：替代当前"Excel + DeepSeek 跑代码"的手工流，提供 7 大看板的实时化、统一口径化。
+    </div>
+    <table class="cap-table">
+      <thead>
+        <tr>
+          <th style="width:25%;">二级能力</th>
+          <th style="width:35%;">价值描述</th>
+          <th style="width:30%;">关键支撑</th>
+          <th class="mvp-col">MVP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b class="cap-code">C3.1</b><span class="cap-name-cell">站点总览看板</span></td>
+          <td>单站点 / 北美聚合 / 欧洲聚合 / 全站聚合；周/月时间维度；环比 + 同比</td>
+          <td>时间筛选器 + 聚合服务</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C3.2</b><span class="cap-name-cell">场景与页面看板</span></td>
+          <td>场景维度月度对比、场景下钻到页面、页面下钻到流量组成</td>
+          <td>C2.1 / C2.2 映射</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C3.3</b><span class="cap-name-cell">流量组成看板</span></td>
+          <td>每个页面拆分 SB / Organic / Other 渠道，含占比与同比</td>
+          <td>渠道分桶规则字典</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C3.4</b><span class="cap-name-cell">品线与 Top SKU 看板</span></td>
+          <td>通过 SKU 归类品线（与页面解耦）、Top 20 销额、多 SKU 搜索</td>
+          <td>SKU-品线映射</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C3.5</b><span class="cap-name-cell">跨店占比看板</span></td>
+          <td>旗舰店 SKU 出单 / 全店 SKU 出单 = 旗舰店占比</td>
+          <td><b style="color:var(--orange);">依赖 amazon-sales-system 销售明细</b></td>
+          <td class="mvp-col"><span class="agg-pill recalc">P1</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ④ 复盘资产 -->
+  <div class="detail-card dc4">
+    <div class="detail-head">
+      <span class="detail-domain-num">④</span>
+      <span class="detail-title">复盘资产</span>
+      <span class="detail-en">Retro &amp; Asset</span>
+      <span class="detail-user">主用户 · CP / BO</span>
+    </div>
+    <div class="detail-position">
+      <b>业务定位</b>：把每一次推广复盘的过程、命名规范、方法论，沉淀为组织资产，避免人走资产丢。
+    </div>
+    <table class="cap-table">
+      <thead>
+        <tr>
+          <th style="width:25%;">二级能力</th>
+          <th style="width:35%;">价值描述</th>
+          <th style="width:30%;">关键支撑</th>
+          <th class="mvp-col">MVP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b class="cap-code">C4.1</b><span class="cap-name-cell">周/月报模板自动化</span></td>
+          <td>看板数据一键生成周/月报 markdown / docx</td>
+          <td>报表模板引擎</td>
+          <td class="mvp-col"><span class="agg-pill recalc">P1</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C4.2</b><span class="cap-name-cell">阶段性复盘归档</span></td>
+          <td>大促 / 季度复盘文档归档与检索</td>
+          <td><code style="color:var(--cyan);font-family:monospace;font-size:11px;">docs/approved/</code> 落盘</td>
+          <td class="mvp-col"><span class="agg-pill recalc">P1</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C4.3</b><span class="cap-name-cell">命名规范资产沉淀</span></td>
+          <td>Tag / 联盟 / 页面命名规范的版本化资产</td>
+          <td>字典表 + 变更日志</td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+        <tr>
+          <td><b class="cap-code">C4.4</b><span class="cap-name-cell">方法论与 SOP 沉淀</span></td>
+          <td>Attribution 创建 SOP、联盟导入 SOP、看板使用指南</td>
+          <td>子系统 <code style="color:var(--cyan);font-family:monospace;font-size:11px;">docs/</code></td>
+          <td class="mvp-col"><span class="agg-pill sum">P0</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ═════════════════════════════════
+     4 · 统一指标计算服务
+     ═════════════════════════════════ -->
+<div class="sec-header">
+  <div class="sec-num n4">4</div>
+  <div>
+    <div class="sec-title">统一指标计算服务（贯穿 C3.x 所有看板）</div>
+    <div class="sec-desc">所有比率类指标必须由后端计算，前端只展示，杜绝 Excel 时代的口径漂移</div>
+  </div>
+</div>
+
+<div class="metric-section">
+  <div class="metric-table">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:30%;">指标</th>
+          <th style="width:45%;">公式</th>
+          <th class="center" style="width:25%;">聚合方式</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Sales / Orders / Units / Visitors / Views</b></td>
+          <td><code>sum()</code></td>
+          <td class="center"><span class="agg-pill sum">求和</span></td>
+        </tr>
+        <tr>
+          <td><b>CVR · 转化率</b></td>
+          <td><code>Orders / Visitors</code></td>
+          <td class="center"><span class="agg-pill recalc">sum/sum 重算</span></td>
+        </tr>
+        <tr>
+          <td><b>ASP · 客单价</b></td>
+          <td><code>Sales / Orders</code></td>
+          <td class="center"><span class="agg-pill recalc">sum/sum 重算</span></td>
+        </tr>
+        <tr>
+          <td><b>UPT · 件单</b></td>
+          <td><code>Units / Orders</code></td>
+          <td class="center"><span class="agg-pill recalc">sum/sum 重算</span></td>
+        </tr>
+        <tr>
+          <td><b>NTS 占比 · 新客占比</b></td>
+          <td><code>NTS / Visitors</code></td>
+          <td class="center"><span class="agg-pill recalc">sum/sum 重算</span></td>
+        </tr>
+        <tr>
+          <td><b>Daily Views / Daily Sales · 日均</b></td>
+          <td><code>Total / 周期天数</code></td>
+          <td class="center"><span class="agg-pill avg">平均值</span></td>
+        </tr>
+        <tr>
+          <td><b>ADT · 平均停留时长</b></td>
+          <td><code>avg(dwell time)</code></td>
+          <td class="center"><span class="agg-pill avg">平均值</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="metric-note">
+    <b>⚠️ 关键决策</b>：所有 <b>sum/sum 重算</b> 类指标禁止在前端再次计算或对率值做平均；这是替代"Excel + DeepSeek 手工流"的根本能力，写入 K3 关键约束。
+  </div>
+</div>
+
+<!-- ═════════════════════════════════
+     5 · 能力 ↔ 角色 ↔ MVP 矩阵
+     ═════════════════════════════════ -->
+<div class="sec-header">
+  <div class="sec-num n5">5</div>
+  <div>
+    <div class="sec-title">能力 ↔ 角色 ↔ MVP 一览矩阵</div>
+    <div class="sec-desc">合计 P0 = 13 项 · P1 = 4 项；P0 即 MVP 范围</div>
+  </div>
+</div>
+
+<div class="matrix-section">
+  <div class="matrix-grid">
+
+    <div class="matrix-card m1">
+      <div class="matrix-head">① 引流归因</div>
+      <div class="matrix-row"><span class="mr-label">主用户</span><span class="mr-value">CP</span></div>
+      <div class="matrix-row"><span class="mr-label">协同角色</span><span class="mr-value">SO / DA</span></div>
+      <div class="matrix-totals">
+        <div class="total-pill p0">P0 · 3 项</div>
+        <div class="total-pill p1">P1 · 1 项</div>
+      </div>
+    </div>
+
+    <div class="matrix-card m2">
+      <div class="matrix-head">② 旗舰店运营</div>
+      <div class="matrix-row"><span class="mr-label">主用户</span><span class="mr-value">SO</span></div>
+      <div class="matrix-row"><span class="mr-label">协同角色</span><span class="mr-value">CP / BO</span></div>
+      <div class="matrix-totals">
+        <div class="total-pill p0">P0 · 4 项</div>
+        <div class="total-pill p1">P1 · 0 项</div>
+      </div>
+    </div>
+
+    <div class="matrix-card m3">
+      <div class="matrix-head">③ 数据分析</div>
+      <div class="matrix-row"><span class="mr-label">主用户</span><span class="mr-value">DA / BO</span></div>
+      <div class="matrix-row"><span class="mr-label">协同角色</span><span class="mr-value">CP / SO</span></div>
+      <div class="matrix-totals">
+        <div class="total-pill p0">P0 · 4 项</div>
+        <div class="total-pill p1">P1 · 1 项</div>
+      </div>
+    </div>
+
+    <div class="matrix-card m4">
+      <div class="matrix-head">④ 复盘资产</div>
+      <div class="matrix-row"><span class="mr-label">主用户</span><span class="mr-value">CP / BO</span></div>
+      <div class="matrix-row"><span class="mr-label">协同角色</span><span class="mr-value">DA / SO</span></div>
+      <div class="matrix-totals">
+        <div class="total-pill p0">P0 · 2 项</div>
+        <div class="total-pill p1">P1 · 2 项</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═════════════════════════════════
+     6 · 与外部子系统的接口契约
+     ═════════════════════════════════ -->
+<div class="sec-header">
+  <div class="sec-num n6">6</div>
+  <div>
+    <div class="sec-title">与外部子系统的接口契约（草稿）</div>
+    <div class="sec-desc">L3 系统架构图中将进一步细化字段级契约</div>
+  </div>
+</div>
+
+<div class="iface-section">
+  <div class="iface-table">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px;">方向</th>
+          <th>来源 / 去向</th>
+          <th>数据</th>
+          <th>接入方式</th>
+          <th style="width:80px;">状态</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="dir-in">⬇️ 入</span></td>
+          <td><code>src/domain/data/</code></td>
+          <td>ASIN-SKU 主数据、币种汇率、站点字典</td>
+          <td>直接读取（同进程）</td>
+          <td><span class="stage-pill todo">待规整</span></td>
+        </tr>
+        <tr>
+          <td><span class="dir-in">⬇️ 入</span></td>
+          <td><code>amazon-sales-system</code></td>
+          <td>全店 SKU 销售明细（用于 C3.5 跨店占比）</td>
+          <td>经 domain 共享</td>
+          <td><span class="stage-pill p1">P1</span></td>
+        </tr>
+        <tr>
+          <td><span class="dir-in">⬇️ 入</span></td>
+          <td><code>amazon-ads-system</code></td>
+          <td>SB 投放结果（用于 C3.3 流量组成 SB 渠道）</td>
+          <td>经 domain 或 API</td>
+          <td><span class="stage-pill p0">P0</span></td>
+        </tr>
+        <tr>
+          <td><span class="dir-in">⬇️ 入</span></td>
+          <td><code>off-site-ads-system</code></td>
+          <td>站外付费媒体归因（与本系统 Tag 互补）</td>
+          <td>经 domain</td>
+          <td><span class="stage-pill p0">P0</span></td>
+        </tr>
+        <tr>
+          <td><span class="dir-out">⬆️ 出</span></td>
+          <td><code>omnichannel-business-management-system</code></td>
+          <td>旗舰店核心指标快照（站点 × 月）</td>
+          <td>API 或 domain</td>
+          <td><span class="stage-pill p1">P1</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="iface-note">
+    <b>🔒 强约束</b>：所有接口<b>严禁深层引用</b>对方源码，必须经 <code style="color:var(--yellow);font-family:monospace;">src/domain/</code> 交换，符合 <code style="color:var(--yellow);font-family:monospace;">.globalrules</code> §1。
+  </div>
+</div>
+
+<!-- ═════════════════════════════════
+     7 · L1 → L2 菜单对齐预告
+     ═════════════════════════════════ -->
+<div class="sec-header">
+  <div class="sec-num n7">7</div>
+  <div>
+    <div class="sec-title">L1 → L2 菜单对齐预告</div>
+    <div class="sec-desc">已在 <code style="color:var(--cyan);font-family:monospace;">flagship-store_menu_v1.md/.html</code> 落定为 8 大模块</div>
+  </div>
+</div>
+
+<div class="preview-section">
+  <div class="preview-grid">
+
+    <div class="preview-card pc1">
+      <div class="preview-head">
+        <span class="preview-from">① 引流归因</span>
+        <span class="preview-arrow">→</span>
+        <span class="preview-to">3 个一级菜单</span>
+      </div>
+      <ul class="preview-list">
+        <li>② Tag 中心</li>
+        <li>③ 联盟中心</li>
+        <li>④ 直播中心</li>
+      </ul>
+    </div>
+
+    <div class="preview-card pc2">
+      <div class="preview-head">
+        <span class="preview-from">② 旗舰店运营</span>
+        <span class="preview-arrow">→</span>
+        <span class="preview-to">2 个一级菜单</span>
+      </div>
+      <ul class="preview-list">
+        <li>⑤ 站点与场景（含页面映射）</li>
+        <li>⑥ 重点品与目标</li>
+      </ul>
+    </div>
+
+    <div class="preview-card pc3">
+      <div class="preview-head">
+        <span class="preview-from">③ 数据分析</span>
+        <span class="preview-arrow">→</span>
+        <span class="preview-to">1 个一级菜单</span>
+      </div>
+      <ul class="preview-list">
+        <li>① 旗舰店看板（含 7 大 Tab：T1–T7）</li>
+      </ul>
+    </div>
+
+    <div class="preview-card pc4">
+      <div class="preview-head">
+        <span class="preview-from">④ 复盘资产</span>
+        <span class="preview-arrow">→</span>
+        <span class="preview-to">1 个一级菜单</span>
+      </div>
+      <ul class="preview-list">
+        <li>⑦ 复盘与资产</li>
+      </ul>
+    </div>
+
+    <div class="preview-card pc5">
+      <div class="preview-head">
+        <span class="preview-from">+ 系统级</span>
+        <span class="preview-arrow">→</span>
+        <span class="preview-to">1 个一级菜单</span>
+      </div>
+      <ul class="preview-list">
+        <li>⑧ 系统设置（命名规范 / 佣金比例 / 字段映射 / 权限）</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═════════════════════════════════
+     INSIGHTS
+     ═════════════════════════════════ -->
+<div class="insights">
+  <div class="insights-title">💡 v0.1 能力架构的三大设计意图</div>
+  <div class="insights-grid">
+    <div>
+      <h5 style="color:#93c5fd;">1. 主航道收敛 = 拒绝功能膨胀</h5>
+      <p>4 大能力域全部围绕"引流→转化→复盘"主航道。Listing 发布、订单履约、广告投放执行等被显式排除，避免子系统变成"亚马逊万能后台"。</p>
+    </div>
+    <div>
+      <h5 style="color:#86efac;">2. 业务术语 ≠ 技术术语</h5>
+      <p>14 项二级能力直接复用业务方 Excel 中的称谓（如 Hero SKU、场景、流量组成）；技术名词（指标计算服务、维度模型、映射快照）只在关键支撑列出现，不污染业务视角。</p>
+    </div>
+    <div>
+      <h5 style="color:#fde68a;">3. MVP 即 P0 13 项，可 8 周内交付</h5>
+      <p>P0 覆盖业务方最痛的"自助 Tag + 联盟导入 + 7 大看板（不含跨店占比） + 命名规范"；P1 用于解决依赖外部数据 / 待评估的项（直播、跨店占比、报表自动化）。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════
+     VERSION RECORD
+     ═════════════════════════════════ -->
+<div class="sec-header">
+  <div class="sec-num n7">∞</div>
+  <div>
+    <div class="sec-title">版本记录</div>
+  </div>
+</div>
+
+<div class="version-table">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:80px;">版本</th>
+        <th style="width:120px;">日期</th>
+        <th>变更点</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>v0.1</b></td>
+        <td>2026-04-22</td>
+        <td>首版：4 大能力域 × 14 项二级能力 + 三栏能力地图 + 与外部子系统接口契约草稿 + L2 菜单对齐预告</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═════════════════════════════════
+     FOOTER
+     ═════════════════════════════════ -->
+<div class="footer">
+  <p>亚马逊旗舰店子系统 · L1 业务能力架构 v0.1 · 2026-04-22</p>
+  <p style="margin-top:4px;">4 大能力域 · 14 项二级能力 · 13 P0 + 4 P1 · 5 项跨子系统接口</p>
+  <p style="margin-top:10px;">用于统一能力边界、角色归口与跨系统协同范围。</p>
+  <p style="margin-top:14px;font-size:11px;color:#64748b;">
+    作者：<span style="color:#60a5fa;font-weight:700;">@beynawoo-code</span>
+  </p>
+</div>
+
+</body>
+</html>

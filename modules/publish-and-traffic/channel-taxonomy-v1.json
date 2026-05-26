@@ -1,0 +1,228 @@
+{
+  "taxonomy_version": "v1.2",
+  "effective_from": "2026-05-19",
+  "canonical_name_template": "{brand}-{marketplace}-{sku}-{name_short}-{YYYYMMDD}",
+  "name_short_rule": "name_short = strategy_major_short + strategy_minor_suffix（全局唯一；不含 Amazon Channel）",
+  "amazon_channel_console_options": [
+    { "amazon_channel": "search", "console_label": "Search", "label_zh": "搜索" },
+    { "amazon_channel": "social", "console_label": "Social", "label_zh": "社交" },
+    { "amazon_channel": "video", "console_label": "Video", "label_zh": "视频" },
+    { "amazon_channel": "email", "console_label": "Email", "label_zh": "邮件" },
+    { "amazon_channel": "display", "console_label": "Display", "label_zh": "展示" }
+  ],
+  "publisher_dictionary": "amazon-attribution-publishers-v1.json",
+  "field_glossary": {
+    "amazon_channel": "亚马逊 Console「Channel」下拉，仅 5 项，与策略层分离",
+    "strategy_major_code": "营销大类（内部策略，原 channel_major）",
+    "strategy_minor_code": "营销子类（内部战术，原 channel_minor）",
+    "publisher_name": "投放平台：Google / Facebook / Instagram / KOL名 / 联盟平台等",
+    "name_short": "写入 Ad group name 的组合短码"
+  },
+  "wizard_flow": [
+    "1. 选择 amazon_channel（与 Console Channel 一致，5 选 1）",
+    "2. 选择 strategy_major_code（仅显示该 Channel 下的营销大类）",
+    "3. 选择 strategy_minor_code",
+    "4. 填写 publisher_name + paid_flag（若红人）",
+    "5. 生成 canonical_name"
+  ],
+  "amazon_channel_groups": [
+    {
+      "amazon_channel": "search",
+      "label_zh": "搜索",
+      "console_label": "Search",
+      "strategies": [
+        {
+          "strategy_major_code": "paid_search",
+          "label_zh": "付费搜索",
+          "ga4_channel": "Paid Search",
+          "name_short_major": "PS",
+          "supports_bulk": true,
+          "p0_wizard": true,
+          "minors": [
+            { "strategy_minor_code": "ps_performance", "label_zh": "效果/转化", "name_short_suffix": "PF", "name_short": "PSPF", "p0_wizard": true, "typical_publishers": ["Google", "Microsoft Advertising"] },
+            { "strategy_minor_code": "ps_brand", "label_zh": "品牌词", "name_short_suffix": "BR", "name_short": "PSBR", "p0_wizard": true, "typical_publishers": ["Google"] },
+            { "strategy_minor_code": "ps_competitor", "label_zh": "竞品词", "name_short_suffix": "CP", "name_short": "PSCP", "p0_wizard": false, "typical_publishers": ["Google"] },
+            { "strategy_minor_code": "ps_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "PSGEN", "p0_wizard": true, "typical_publishers": ["Google", "Microsoft Advertising"] }
+          ]
+        },
+        {
+          "strategy_major_code": "paid_shopping",
+          "label_zh": "付费购物广告",
+          "ga4_channel": "Paid Shopping",
+          "name_short_major": "PSh",
+          "supports_bulk": false,
+          "p0_wizard": false,
+          "minors": [
+            { "strategy_minor_code": "pshop_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "PShGEN", "p0_wizard": true, "typical_publishers": ["Google", "Pinterest"] }
+          ]
+        }
+      ]
+    },
+    {
+      "amazon_channel": "social",
+      "label_zh": "社交",
+      "console_label": "Social",
+      "strategies": [
+        {
+          "strategy_major_code": "paid_social",
+          "label_zh": "付费社交",
+          "ga4_channel": "Paid Social",
+          "name_short_major": "PSo",
+          "supports_bulk": true,
+          "p0_wizard": true,
+          "minors": [
+            { "strategy_minor_code": "psoc_performance", "label_zh": "效果广告", "name_short_suffix": "PF", "name_short": "PSoPF", "p0_wizard": true, "typical_publishers": ["Facebook", "Instagram", "TikTok"] },
+            { "strategy_minor_code": "psoc_reach", "label_zh": "曝光/触达", "name_short_suffix": "RH", "name_short": "PSoRH", "p0_wizard": false, "typical_publishers": ["Facebook", "Instagram"] },
+            { "strategy_minor_code": "psoc_retargeting", "label_zh": "再营销", "name_short_suffix": "RT", "name_short": "PSoRT", "p0_wizard": true, "typical_publishers": ["Facebook", "Instagram"] },
+            { "strategy_minor_code": "psoc_influencer", "label_zh": "付费红人", "name_short_suffix": "INF", "name_short": "PSoINF", "p0_wizard": true, "requires_paid_flag": true, "typical_publishers": ["New: KOL名", "Instagram", "TikTok", "YouTube"] },
+            { "strategy_minor_code": "psoc_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "PSoGEN", "p0_wizard": true, "typical_publishers": ["Facebook", "Instagram"] }
+          ]
+        },
+        {
+          "strategy_major_code": "organic_social",
+          "label_zh": "自然社交",
+          "ga4_channel": "Organic Social",
+          "name_short_major": "OSo",
+          "supports_bulk": false,
+          "p0_wizard": true,
+          "minors": [
+            { "strategy_minor_code": "osoc_brand_owned", "label_zh": "品牌自有社媒", "name_short_suffix": "BO", "name_short": "OSoBO", "p0_wizard": true, "legacy_channel_type": "SNS", "typical_publishers": ["Instagram", "Facebook", "TikTok"] },
+            { "strategy_minor_code": "osoc_influencer", "label_zh": "自然红人", "name_short_suffix": "INF", "name_short": "OSoINF", "p0_wizard": true, "requires_paid_flag": false, "legacy_channel_type": "KOL", "typical_publishers": ["New: KOL名"] },
+            { "strategy_minor_code": "osoc_ugc", "label_zh": "UGC", "name_short_suffix": "UGC", "name_short": "OSoUGC", "p0_wizard": false, "typical_publishers": ["Instagram", "TikTok"] },
+            { "strategy_minor_code": "osoc_community", "label_zh": "社群/论坛", "name_short_suffix": "COM", "name_short": "OSoCOM", "p0_wizard": false, "typical_publishers": ["Reddit", "Facebook Groups"] },
+            { "strategy_minor_code": "osoc_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "OSoGEN", "p0_wizard": true, "typical_publishers": ["Instagram", "Facebook"] }
+          ]
+        },
+        {
+          "strategy_major_code": "affiliate",
+          "label_zh": "联盟/分销",
+          "ga4_channel": "Affiliates",
+          "name_short_major": "AFF",
+          "supports_bulk": false,
+          "p0_wizard": true,
+          "minors": [
+            { "strategy_minor_code": "aff_network", "label_zh": "联盟网络", "name_short_suffix": "NET", "name_short": "AFFNET", "p0_wizard": true, "typical_publishers": ["Levanta", "Impact", "ShareASale"] },
+            { "strategy_minor_code": "aff_creator", "label_zh": "达人分销", "name_short_suffix": "CR", "name_short": "AFFCR", "p0_wizard": true, "typical_publishers": ["Creator Connections", "New: 平台名"] },
+            { "strategy_minor_code": "aff_deal_site", "label_zh": "导购/Deal", "name_short_suffix": "DL", "name_short": "AFFDL", "p0_wizard": false, "typical_publishers": ["New: Deal站名"] },
+            { "strategy_minor_code": "aff_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "AFFGEN", "p0_wizard": true, "typical_publishers": ["Levanta"] }
+          ]
+        },
+        {
+          "strategy_major_code": "paid_other",
+          "label_zh": "其他付费（社交类）",
+          "ga4_channel": "Paid Other",
+          "name_short_major": "PO",
+          "supports_bulk": false,
+          "p0_wizard": false,
+          "legacy_channel_type": "Other",
+          "minors": [
+            { "strategy_minor_code": "pother_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "POGEN", "p0_wizard": true, "typical_publishers": ["New"] }
+          ]
+        }
+      ]
+    },
+    {
+      "amazon_channel": "display",
+      "label_zh": "展示",
+      "console_label": "Display",
+      "strategies": [
+        {
+          "strategy_major_code": "display",
+          "label_zh": "展示/程序化",
+          "ga4_channel": "Display",
+          "name_short_major": "DSP",
+          "supports_bulk": false,
+          "p0_wizard": false,
+          "legacy_channel_type": "Display",
+          "minors": [
+            { "strategy_minor_code": "dsp_programmatic", "label_zh": "程序化", "name_short_suffix": "PG", "name_short": "DSPPG", "p0_wizard": false, "typical_publishers": ["The Trade Desk", "DV360", "New"] },
+            { "strategy_minor_code": "dsp_retargeting", "label_zh": "再营销展示", "name_short_suffix": "RT", "name_short": "DSPRT", "p0_wizard": false, "typical_publishers": ["Criteo", "AdRoll"] },
+            { "strategy_minor_code": "dsp_awareness", "label_zh": "品牌曝光", "name_short_suffix": "AW", "name_short": "DSPAW", "p0_wizard": false, "typical_publishers": ["New"] },
+            { "strategy_minor_code": "dsp_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "DSPGEN", "p0_wizard": true, "typical_publishers": ["New"] }
+          ]
+        },
+        {
+          "strategy_major_code": "cross_network",
+          "label_zh": "跨网络智能",
+          "ga4_channel": "Cross-network",
+          "name_short_major": "XN",
+          "supports_bulk": false,
+          "p0_wizard": false,
+          "minors": [
+            { "strategy_minor_code": "xnet_pmax", "label_zh": "Performance Max", "name_short_suffix": "PM", "name_short": "XNPM", "p0_wizard": false, "typical_publishers": ["Google"] },
+            { "strategy_minor_code": "xnet_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "XNGEN", "p0_wizard": true, "typical_publishers": ["Google"] }
+          ]
+        }
+      ]
+    },
+    {
+      "amazon_channel": "video",
+      "label_zh": "视频",
+      "console_label": "Video",
+      "strategies": [
+        {
+          "strategy_major_code": "paid_video",
+          "label_zh": "付费视频",
+          "ga4_channel": "Paid Video",
+          "name_short_major": "PV",
+          "supports_bulk": false,
+          "p0_wizard": false,
+          "legacy_channel_type": "Video",
+          "minors": [
+            { "strategy_minor_code": "pv_instream", "label_zh": "插片/流媒体", "name_short_suffix": "INS", "name_short": "PVINS", "p0_wizard": false, "typical_publishers": ["YouTube", "Hulu"] },
+            { "strategy_minor_code": "pv_social_video", "label_zh": "社交视频广告", "name_short_suffix": "SV", "name_short": "PVSV", "p0_wizard": false, "typical_publishers": ["YouTube", "TikTok"] },
+            { "strategy_minor_code": "pv_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "PVGEN", "p0_wizard": true, "typical_publishers": ["YouTube"] }
+          ]
+        },
+        {
+          "strategy_major_code": "organic_video",
+          "label_zh": "自然视频",
+          "ga4_channel": "Organic Video",
+          "name_short_major": "OV",
+          "supports_bulk": false,
+          "p0_wizard": false,
+          "minors": [
+            { "strategy_minor_code": "ov_creator", "label_zh": "创作者自然视频", "name_short_suffix": "CR", "name_short": "OVCR", "p0_wizard": false, "typical_publishers": ["YouTube", "TikTok"] },
+            { "strategy_minor_code": "ov_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "OVGEN", "p0_wizard": true, "typical_publishers": ["YouTube"] }
+          ]
+        }
+      ]
+    },
+    {
+      "amazon_channel": "email",
+      "label_zh": "邮件",
+      "console_label": "Email",
+      "strategies": [
+        {
+          "strategy_major_code": "email",
+          "label_zh": "邮件营销",
+          "ga4_channel": "Email",
+          "name_short_major": "EML",
+          "supports_bulk": false,
+          "p0_wizard": false,
+          "legacy_channel_type": "Email",
+          "minors": [
+            { "strategy_minor_code": "em_newsletter", "label_zh": "Newsletter", "name_short_suffix": "NL", "name_short": "EMLNL", "p0_wizard": false, "typical_publishers": ["Klaviyo", "Mailchimp"] },
+            { "strategy_minor_code": "em_promo", "label_zh": "促销单发", "name_short_suffix": "PR", "name_short": "EMLPR", "p0_wizard": true, "typical_publishers": ["Klaviyo", "Internal"] },
+            { "strategy_minor_code": "em_lifecycle", "label_zh": "生命周期", "name_short_suffix": "LC", "name_short": "EMLLC", "p0_wizard": false, "typical_publishers": ["Klaviyo"] },
+            { "strategy_minor_code": "em_generic", "label_zh": "通用", "name_short_suffix": "GEN", "name_short": "EMLGEN", "p0_wizard": true, "typical_publishers": ["Klaviyo", "Mailchimp"] }
+          ]
+        }
+      ]
+    }
+  ],
+  "legacy_field_aliases": {
+    "channel_major_code": "strategy_major_code",
+    "channel_minor_code": "strategy_minor_code"
+  },
+  "legacy_mapping": [
+    { "legacy_channel_type": "KOL", "amazon_channel": "social", "strategy_major_code": "paid_social", "strategy_minor_code": "psoc_influencer", "name_short": "PSoINF", "paid_flag": true },
+    { "legacy_channel_type": "SNS", "amazon_channel": "social", "strategy_major_code": "organic_social", "strategy_minor_code": "osoc_brand_owned", "name_short": "OSoBO", "paid_flag": false },
+    { "legacy_channel_type": "Paid-Search", "amazon_channel": "search", "strategy_major_code": "paid_search", "strategy_minor_code": "ps_generic", "name_short": "PSGEN", "paid_flag": true },
+    { "legacy_channel_type": "Paid-Social", "amazon_channel": "social", "strategy_major_code": "paid_social", "strategy_minor_code": "psoc_performance", "name_short": "PSoPF", "paid_flag": true },
+    { "legacy_channel_type": "Display", "amazon_channel": "display", "strategy_major_code": "display", "strategy_minor_code": "dsp_generic", "name_short": "DSPGEN", "paid_flag": true },
+    { "legacy_channel_type": "Video", "amazon_channel": "video", "strategy_major_code": "paid_video", "strategy_minor_code": "pv_generic", "name_short": "PVGEN", "paid_flag": true },
+    { "legacy_channel_type": "Email", "amazon_channel": "email", "strategy_major_code": "email", "strategy_minor_code": "em_generic", "name_short": "EMLGEN", "paid_flag": false },
+    { "legacy_channel_type": "Other", "amazon_channel": "social", "strategy_major_code": "paid_other", "strategy_minor_code": "pother_generic", "name_short": "POGEN", "paid_flag": true }
+  ]
+}

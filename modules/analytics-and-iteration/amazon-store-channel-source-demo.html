@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旗舰店 · 渠道来源分析（Demo）</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #0c1017;
+      --panel: #151c28;
+      --border: #2a3544;
+      --text: #e8eef5;
+      --muted: #8b9cb3;
+      --ads: #3b82f6;
+      --organic: #22c55e;
+      --other: #a78bfa;
+      --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(59, 130, 246, 0.12), transparent),
+        radial-gradient(800px 400px at 90% 0%, rgba(34, 197, 94, 0.08), transparent), var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 22px 18px 40px; }
+    header { margin-bottom: 18px; }
+    h1 { font-size: 1.28rem; font-weight: 650; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .lead { color: var(--muted); font-size: 0.88rem; max-width: 720px; margin: 0; }
+    .legend-inline {
+      display: flex; flex-wrap: wrap; gap: 14px 20px; margin-top: 14px; font-size: 0.8rem;
+    }
+    .lg { display: inline-flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .badge {
+      display: inline-block; margin-left: 10px; padding: 4px 10px; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 600; background: rgba(245, 158, 11, 0.15); color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.35); vertical-align: middle;
+    }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: flex-end;
+      padding: 14px 16px; background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 16px;
+    }
+    .field label { display: block; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    select {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; min-width: 160px;
+    }
+    .grid {
+      display: grid; gap: 14px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .span2 { grid-column: span 2; }
+    }
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .card h2 { font-size: 0.92rem; font-weight: 600; margin: 0 0 10px; color: #cbd5e1; }
+    .chart-h { height: 260px; position: relative; }
+    .chart-h.tall { height: 300px; }
+    .kpi-row {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px;
+    }
+    .kpi {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+      border-left: 3px solid var(--border);
+    }
+    .kpi.ads { border-left-color: var(--ads); }
+    .kpi.organic { border-left-color: var(--organic); }
+    .kpi.other { border-left-color: var(--other); }
+    .kpi .n { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .kpi .v { font-size: 1.25rem; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .kpi .s { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { color: var(--muted); font-weight: 500; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: none; }
+    .src-pill { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.8rem; }
+    footer { margin-top: 22px; font-size: 0.74rem; color: var(--muted); text-align: center; }
+    code { font-size: 0.76em; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>旗舰店 · 渠道来源分析 <span class="badge">演示数据</span></h1>
+      <p class="lead">
+        对应 Amazon Store Insights 的 <code>dimension = SOURCE</code> 思路：来源大类为
+        <strong>ADS</strong>（SB 等站内广告）、<strong>ORGANIC</strong>（详情页品牌链等自然入口）、<strong>OTHER</strong>（其余归类）。
+        以下为前端生成的模拟数，用于直观预览布局；正式环境接 API 后替换数据源即可。
+      </p>
+      <div class="legend-inline">
+        <span class="lg"><span class="dot" style="background:var(--ads)"></span> ADS · 广告进店</span>
+        <span class="lg"><span class="dot" style="background:var(--organic)"></span> ORGANIC · 自然入口</span>
+        <span class="lg"><span class="dot" style="background:var(--other)"></span> OTHER · 其他</span>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <div class="field">
+        <label>演示站点</label>
+        <select id="market">
+          <option value="US">US（北美 host）</option>
+          <option value="DE">DE（欧洲 host）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>区间天数</label>
+        <select id="days">
+          <option value="14">最近 14 天</option>
+          <option value="30" selected>最近 30 天</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>趋势纵轴</label>
+        <select id="metric">
+          <option value="visits" selected>VISITS 访问</option>
+          <option value="views">VIEWS 浏览</option>
+          <option value="orders">ORDERS 订单</option>
+          <option value="sales">SALES 销售额</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="grid">
+      <div class="card span2">
+        <h2>来源结构 · 区间内合计占比（VISITS）</h2>
+        <div class="chart-h"><canvas id="donut"></canvas></div>
+      </div>
+      <div class="card span2">
+        <h2>按日趋势 · 各来源堆叠（所选指标）</h2>
+        <div class="chart-h tall"><canvas id="stack"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>来源 × 核心指标（区间合计）</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>来源</th>
+              <th class="num">VISITS</th>
+              <th class="num">VIEWS</th>
+              <th class="num">Bounce</th>
+              <th class="num">ORDERS</th>
+              <th class="num">SALES</th>
+            </tr>
+          </thead>
+          <tbody id="tbl"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h2>占比条（相对区间内总 VISITS）</h2>
+        <div class="chart-h"><canvas id="hbar"></canvas></div>
+      </div>
+    </div>
+
+    <footer>
+      官方口径与枚举见 Amazon Ads Stores OpenAPI（TrafficSource: ADS / ORGANIC / OTHER）。打开方式：双击本文件或 <code>python3 -m http.server</code> 后访问。
+    </footer>
+  </div>
+
+  <script>
+    const SOURCES = [
+      { id: "ADS", label: "ADS", color: "#3b82f6" },
+      { id: "ORGANIC", label: "ORGANIC", color: "#22c55e" },
+      { id: "OTHER", label: "OTHER", color: "#a78bfa" },
+    ];
+
+    function mulberry32(a) {
+      return function () {
+        let t = (a += 0x6d2b79f5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function genSeries(len, seed) {
+      const rnd = mulberry32(seed);
+      const w = [0.42 + rnd() * 0.12, 0.38 + rnd() * 0.1, 0.12 + rnd() * 0.08];
+      const s = w.reduce((a, b) => a + b, 0);
+      w[0] /= s; w[1] /= s; w[2] /= s;
+
+      const ads = [], org = [], oth = [];
+      let base = 3500 + rnd() * 2500;
+      for (let i = 0; i < len; i++) {
+        const wave = 1 + 0.12 * Math.sin(i / 4.2) + (rnd() - 0.5) * 0.06;
+        base = Math.max(1200, base * wave);
+        const total = Math.round(base);
+        const a = Math.round(total * w[0] * (0.92 + rnd() * 0.16));
+        const o = Math.round(total * w[1] * (0.92 + rnd() * 0.16));
+        const t = Math.max(0, total - a - o);
+        ads.push(a);
+        org.push(o);
+        oth.push(t);
+      }
+      return { ads, org, oth };
+    }
+
+    function derived(visitsArr) {
+      const views = visitsArr.map((v) => Math.round(v * (1.75 + Math.random() * 0.25)));
+      const bounce = visitsArr.map(() => 0.28 + Math.random() * 0.22);
+      const orders = visitsArr.map((v) => Math.max(0, Math.round(v * (0.032 + Math.random() * 0.028))));
+      const sales = orders.map((o) => Math.round(o * (42 + Math.random() * 36) * 100) / 100);
+      return { views, bounce, orders, sales };
+    }
+
+    let donutChart, stackChart, hbarChart;
+
+    function fmt(n, d = 0) {
+      return n.toLocaleString("zh-CN", { maximumFractionDigits: d });
+    }
+
+    function refresh() {
+      const market = document.getElementById("market").value;
+      const len = parseInt(document.getElementById("days").value, 10);
+      const metricKey = document.getElementById("metric").value;
+      const seed = market === "US" ? 101 : 203;
+
+      const { ads, org, oth } = genSeries(len, seed);
+      const labels = Array.from({ length: len }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (len - 1 - i));
+        return `${d.getMonth() + 1}/${d.getDate()}`;
+      });
+
+      const dAds = derived(ads);
+      const dOrg = derived(org);
+      const dOth = derived(oth);
+
+      const sum = (arr) => arr.reduce((a, b) => a + b, 0);
+      const totAds = { visits: sum(ads), views: sum(dAds.views), orders: sum(dAds.orders), sales: sum(dAds.sales), bounce: sum(dAds.bounce.map((b, i) => b * ads[i])) / sum(ads) };
+      const totOrg = { visits: sum(org), views: sum(dOrg.views), orders: sum(dOrg.orders), sales: sum(dOrg.sales), bounce: sum(dOrg.bounce.map((b, i) => b * org[i])) / sum(org) };
+      const totOth = { visits: sum(oth), views: sum(dOth.views), orders: sum(dOth.orders), sales: sum(dOth.sales), bounce: sum(dOth.bounce.map((b, i) => b * oth[i])) / sum(oth) };
+      const totalVis = totAds.visits + totOrg.visits + totOth.visits;
+
+      document.getElementById("kpis").innerHTML = SOURCES.map((s, idx) => {
+        const t = [totAds, totOrg, totOth][idx];
+        const pct = totalVis ? ((t.visits / totalVis) * 100).toFixed(1) : "0";
+        const cls = s.id === "ADS" ? "ads" : s.id === "ORGANIC" ? "organic" : "other";
+        return `<div class="kpi ${cls}"><div class="n">${s.label}</div><div class="v">${fmt(t.visits)}</div><div class="s">占 VISITS ${pct}% · 订单 ${fmt(t.orders)}</div></div>`;
+      }).join("");
+
+      document.getElementById("tbl").innerHTML = [
+        ["ADS", totAds],
+        ["ORGANIC", totOrg],
+        ["OTHER", totOth],
+      ]
+        .map(([name, t]) => {
+          const pill =
+            name === "ADS"
+              ? `<span class="src-pill"><span class="dot" style="background:var(--ads)"></span>${name}</span>`
+              : name === "ORGANIC"
+                ? `<span class="src-pill"><span class="dot" style="background:var(--organic)"></span>${name}</span>`
+                : `<span class="src-pill"><span class="dot" style="background:var(--other)"></span>${name}</span>`;
+          return `<tr><td>${pill}</td><td class="num">${fmt(t.visits)}</td><td class="num">${fmt(t.views)}</td><td class="num">${(t.bounce * 100).toFixed(1)}%</td><td class="num">${fmt(t.orders)}</td><td class="num">${fmt(t.sales, 0)}</td></tr>`;
+        })
+        .join("");
+
+      const pickMetric = (key) => {
+        if (key === "visits") return [ads, org, oth];
+        if (key === "views") return [dAds.views, dOrg.views, dOth.views];
+        if (key === "orders") return [dAds.orders, dOrg.orders, dOth.orders];
+        return [dAds.sales, dOrg.sales, dOth.sales];
+      };
+      const [mAds, mOrg, mOth] = pickMetric(metricKey);
+
+      if (donutChart) donutChart.destroy();
+      donutChart = new Chart(document.getElementById("donut"), {
+        type: "doughnut",
+        data: {
+          labels: SOURCES.map((s) => s.label),
+          datasets: [
+            {
+              data: [totAds.visits, totOrg.visits, totOth.visits],
+              backgroundColor: SOURCES.map((s) => s.color + "cc"),
+              borderColor: SOURCES.map((s) => s.color),
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "right", labels: { color: "#cbd5e1", padding: 14 } },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const v = ctx.raw;
+                  const p = totalVis ? ((v / totalVis) * 100).toFixed(1) : 0;
+                  return ` ${ctx.label}: ${fmt(v)} (${p}%)`;
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (stackChart) stackChart.destroy();
+      stackChart = new Chart(document.getElementById("stack"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "ADS",
+              data: mAds,
+              stack: "s",
+              fill: true,
+              backgroundColor: "rgba(59,130,246,0.35)",
+              borderColor: "#3b82f6",
+              tension: 0.35,
+              pointRadius: 0,
+              borderWidth: 1.5,
+            },
+            {
+              label: "ORGANIC",
+              data: mOrg,
+              stack: "s",
+              fill: true,
+              backgroundColor: "rgba(34,197,94,0.35)",
+              borderColor: "#22c55e",
+              tension: 0.35,
+              pointRadius: 0,
+              borderWidth: 1.5,
+            },
+            {
+              label: "OTHER",
+              data: mOth,
+              stack: "s",
+              fill: true,
+              backgroundColor: "rgba(167,139,250,0.35)",
+              borderColor: "#a78bfa",
+              tension: 0.35,
+              pointRadius: 0,
+              borderWidth: 1.5,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { labels: { color: "#cbd5e1" } },
+            tooltip: {
+              callbacks: {
+                footer(items) {
+                  const t = items.reduce((a, x) => a + (x.parsed.y || 0), 0);
+                  return "当日合计: " + fmt(t);
+                },
+              },
+            },
+          },
+          scales: {
+            x: { stacked: true, ticks: { color: "#8b9cb3", maxTicksLimit: 12 }, grid: { color: "rgba(255,255,255,0.05)" } },
+            y: { stacked: true, ticks: { color: "#8b9cb3" }, grid: { color: "rgba(255,255,255,0.06)" } },
+          },
+        },
+      });
+
+      if (hbarChart) hbarChart.destroy();
+      hbarChart = new Chart(document.getElementById("hbar"), {
+        type: "bar",
+        data: {
+          labels: ["ADS", "ORGANIC", "OTHER"],
+          datasets: [
+            {
+              label: "VISITS 占比",
+              data: [totAds.visits, totOrg.visits, totOth.visits].map((v) => (totalVis ? (v / totalVis) * 100 : 0)),
+              backgroundColor: ["rgba(59,130,246,0.75)", "rgba(34,197,94,0.75)", "rgba(167,139,250,0.75)"],
+              borderRadius: 6,
+            },
+          ],
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { max: 100, ticks: { color: "#8b9cb3", callback: (v) => v + "%" }, grid: { color: "rgba(255,255,255,0.06)" } },
+            y: { ticks: { color: "#cbd5e1" }, grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    document.getElementById("market").addEventListener("change", refresh);
+    document.getElementById("days").addEventListener("change", refresh);
+    document.getElementById("metric").addEventListener("change", refresh);
+    refresh();
+  </script>
+</body>
+</html>

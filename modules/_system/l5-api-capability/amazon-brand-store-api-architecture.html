@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Amazon Ads API · Brand Store 能力架构图</title>
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --panel: #121a26;
+      --panel2: #0f1520;
+      --border: #243044;
+      --text: #e8eef5;
+      --muted: #8b9cb3;
+      --amz: #ff9900;
+      --api: #3b82f6;
+      --insights: #22c55e;
+      --asin: #06b6d4;
+      --sqs: #a855f7;
+      --warn: #f59e0b;
+      --danger: #f87171;
+      --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font);
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255, 153, 0, 0.09), transparent),
+        radial-gradient(700px 400px at 100% 20%, rgba(59, 130, 246, 0.08), transparent),
+        var(--bg);
+      color: var(--text); line-height: 1.55;
+    }
+    .app { max-width: min(1320px, 100%); margin: 0 auto; padding: 20px 16px 56px; }
+    header { margin-bottom: 20px; }
+    h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .lead { color: var(--muted); font-size: 0.88rem; margin: 0; max-width: 920px; }
+    .badge {
+      display: inline-block; margin-bottom: 10px; padding: 4px 10px; border-radius: 999px;
+      font-size: 0.68rem; font-weight: 700; background: rgba(255, 153, 0, 0.12);
+      color: #fcd34d; border: 1px solid rgba(255, 153, 0, 0.35);
+    }
+    .doc-links { margin-top: 12px; font-size: 0.78rem; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+    .doc-links a { color: #7eb3ff; text-decoration: none; }
+    .doc-links a:hover { text-decoration: underline; }
+    .tabs {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+    }
+    .tab {
+      padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { border-color: var(--amz); color: var(--text); background: rgba(255, 153, 0, 0.1); }
+    .view { display: none; }
+    .view.active { display: block; }
+    .panel {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 14px; overflow: hidden;
+    }
+    .panel-head {
+      padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--panel2);
+    }
+    .panel-head h2 { font-size: 0.95rem; margin: 0 0 4px; }
+    .panel-head p { margin: 0; font-size: 0.78rem; color: var(--muted); }
+    .panel-body { padding: 16px; }
+
+    /* Layer architecture */
+    .arch-layers { display: flex; flex-direction: column; gap: 0; align-items: stretch; }
+    .layer {
+      position: relative; padding: 14px 16px; border: 1px solid var(--border);
+      border-radius: var(--radius); background: var(--panel2);
+    }
+    .layer + .layer { margin-top: 8px; }
+    .layer-arrow {
+      text-align: center; color: var(--muted); font-size: 0.75rem; padding: 4px 0;
+      letter-spacing: 0.05em;
+    }
+    .layer-label {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 8px;
+    }
+    .layer.l-consumer .layer-label { color: #c4b5fd; }
+    .layer.l-erp .layer-label { color: #86efac; }
+    .layer.l-api .layer-label { color: #93c5fd; }
+    .layer.l-amz .layer-label { color: #fcd34d; }
+    .layer-grid {
+      display: grid; gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    .box {
+      padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--panel); font-size: 0.8rem;
+    }
+    .box strong { display: block; font-size: 0.82rem; margin-bottom: 4px; }
+    .box span { color: var(--muted); font-size: 0.74rem; }
+    .box.highlight-insights { border-color: rgba(34, 197, 94, 0.45); }
+    .box.highlight-asin { border-color: rgba(6, 182, 212, 0.45); }
+    .box.highlight-discover { border-color: rgba(59, 130, 246, 0.45); }
+    .box.highlight-out { border-color: rgba(248, 113, 113, 0.35); opacity: 0.85; }
+    .box code { font-family: var(--mono); font-size: 0.68rem; color: #c4b5fd; word-break: break-all; }
+
+    /* Flow diagram */
+    .flow-wrap { overflow-x: auto; padding-bottom: 8px; }
+    .flow {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 8px 4px; min-width: min(100%, 900px);
+    }
+    .flow-node {
+      padding: 12px 14px; border-radius: 10px; border: 2px solid var(--border);
+      background: var(--panel); min-width: 120px; text-align: center; font-size: 0.78rem;
+      cursor: default; transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .flow-node:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
+    .flow-node .t { font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; }
+    .flow-node .s { color: var(--muted); font-size: 0.7rem; }
+    .flow-node.n-auth { border-color: #64748b; }
+    .flow-node.n-discover { border-color: var(--api); }
+    .flow-node.n-insights { border-color: var(--insights); }
+    .flow-node.n-asin { border-color: var(--asin); }
+    .flow-node.n-dash { border-color: #c4b5fd; }
+    .flow-arrow { color: var(--muted); font-size: 1.2rem; padding: 0 2px; user-select: none; }
+    .flow-branch {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 10px; border: 1px dashed var(--border); border-radius: 10px;
+      background: rgba(0,0,0,0.15);
+    }
+    .flow-branch-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* Dimension matrix */
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    th, td { padding: 9px 11px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 0.68rem; background: var(--panel2); }
+    tr:hover td { background: #151d2b; }
+    code { font-family: var(--mono); font-size: 0.72rem; color: #c4b5fd; }
+    .yes { color: #86efac; font-weight: 700; }
+    .no { color: #64748b; }
+    .partial { color: #fcd34d; }
+    .metric-tag {
+      display: inline-block; margin: 2px 3px 2px 0; padding: 2px 6px;
+      border-radius: 4px; font-size: 0.65rem; font-weight: 600;
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    }
+    .metric-tag.traffic { border-color: rgba(59,130,246,0.4); color: #93c5fd; }
+    .metric-tag.conv { border-color: rgba(34,197,94,0.4); color: #86efac; }
+    .metric-tag.engage { border-color: rgba(168,85,247,0.4); color: #c4b5fd; }
+    .metric-tag.sqs { border-color: rgba(245,158,11,0.4); color: #fcd34d; }
+    .metric-tag.video { border-color: rgba(236,72,153,0.35); color: #f9a8d4; }
+    .metric-tag.asin { border-color: rgba(6,182,212,0.4); color: #67e8f9; }
+
+    .two-col { display: grid; gap: 14px; }
+    @media (min-width: 960px) {
+      .two-col { grid-template-columns: 1fr 1fr; }
+    }
+    .callout {
+      padding: 12px 14px; border-radius: 8px; font-size: 0.8rem; margin-top: 12px;
+      border-left: 3px solid var(--warn); background: rgba(245, 158, 11, 0.08);
+    }
+    .callout.danger { border-left-color: var(--danger); background: rgba(248, 113, 113, 0.08); }
+    .callout.ok { border-left-color: var(--insights); background: rgba(34, 197, 94, 0.08); }
+    .callout strong { display: block; margin-bottom: 4px; }
+    ul.compact { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: 0.78rem; }
+    ul.compact li { margin-bottom: 4px; }
+
+    .integration-map {
+      display: grid; gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+    .int-card {
+      padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel2);
+    }
+    .int-card h3 { margin: 0 0 8px; font-size: 0.88rem; display: flex; align-items: center; gap: 8px; }
+    .int-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .int-card p { margin: 0; font-size: 0.76rem; color: var(--muted); }
+    .int-card .rel { margin-top: 8px; font-size: 0.72rem; padding-top: 8px; border-top: 1px solid var(--border); }
+
+    footer {
+      margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
+      font-size: 0.74rem; color: var(--muted); text-align: center;
+    }
+    .legend-row { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 14px; font-size: 0.74rem; }
+    .lg { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+    .lg i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <span class="badge">架构参考 · 非实时 API</span>
+      <h1>Amazon Ads API · Brand Store（品牌旗舰店）能力架构</h1>
+      <p class="lead">
+        基于官方 <strong>Stores Analytics OpenAPI v3</strong> 与 Brand Store 指南整理。
+        本页用于理解「发现店铺 → 拉取 Insights / ASIN 指标 → 自建看板」的分层与边界；
+        搭店、过审、内容编辑在 <strong>Ads Console / Store Builder</strong>，不在本分析 API 范围内。
+      </p>
+      <div class="doc-links">
+        <a href="https://advertising.amazon.com/API/docs/en-us/guides/brand-store/overview" target="_blank" rel="noopener">Overview</a>
+        <a href="https://advertising.amazon.com/API/docs/en-us/guides/brand-store/features" target="_blank" rel="noopener">Features</a>
+        <a href="https://advertising.amazon.com/API/docs/en-us/guides/brand-store/insight-metrics" target="_blank" rel="noopener">Insight metrics</a>
+        <a href="https://dtrnk0o2zy01c.cloudfront.net/openapi/en-us/dest/Stores_prod_3p.json" target="_blank" rel="noopener">OpenAPI JSON</a>
+        <a href="../../analytics-and-iteration/amazon-brand-store-dashboard-demo.html">旗舰店看板 Demo</a>
+        <a href="../../analytics-and-iteration/amazon-store-channel-source-demo.html">渠道来源 Demo</a>
+      </div>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab active" data-view="overview">总览分层</button>
+      <button type="button" class="tab" data-view="flow">调用链路</button>
+      <button type="button" class="tab" data-view="insights">Store Insights</button>
+      <button type="button" class="tab" data-view="asin">ASIN Engagement</button>
+      <button type="button" class="tab" data-view="matrix">维度 × 指标</button>
+      <button type="button" class="tab" data-view="boundary">边界与集成</button>
+    </div>
+
+    <!-- View: Overview -->
+    <section id="view-overview" class="view active">
+      <div class="legend-row">
+        <span class="lg"><i style="background:var(--api)"></i> 发现 / 元数据</span>
+        <span class="lg"><i style="background:var(--insights)"></i> Store Insights</span>
+        <span class="lg"><i style="background:var(--asin)"></i> ASIN Engagement</span>
+        <span class="lg"><i style="background:var(--danger)"></i> 本 API 不覆盖</span>
+      </div>
+
+      <div class="arch-layers">
+        <div class="layer l-consumer">
+          <div class="layer-label">L4 · 消费层（你们的旗舰店子系统）</div>
+          <div class="layer-grid">
+            <div class="box"><strong>多站点 KPI 看板</strong><span>日趋势、环比、目标对比</span></div>
+            <div class="box"><strong>页面 / 场景映射</strong><span>业务维表：场景、模块分类（API 无模块枚举）</span></div>
+            <div class="box"><strong>渠道来源分析</strong><span>ADS / ORGANIC / OTHER</span></div>
+            <div class="box"><strong>ASIN 承接漏斗</strong><span>店内 Hero SKU、系列页转化</span></div>
+            <div class="box"><strong>与 Attribution 对照</strong><span>Tag 维度 + 站外活动</span></div>
+          </div>
+        </div>
+
+        <div class="layer-arrow">▼ HTTPS · OAuth / LWA · profileId · vendor media type</div>
+
+        <div class="layer l-api">
+          <div class="layer-label">L3 · Amazon Ads API · Stores Analytics（读数）</div>
+          <div class="layer-grid">
+            <div class="box highlight-discover">
+              <strong>店铺发现</strong>
+              <code>GET /v2/stores</code>
+              <span>→ brandEntityId、pageId、pageUrl、pageName</span>
+            </div>
+            <div class="box highlight-insights">
+              <strong>店级洞察</strong>
+              <code>POST /stores/{id}/insights</code>
+              <span>流量、归因销售、来源、Tag、店质量 SQS、视频</span>
+            </div>
+            <div class="box highlight-asin">
+              <strong>ASIN 参与度</strong>
+              <code>POST /stores/{id}/asinMetrics</code>
+              <span>渲染→浏览→点击→加购→订单</span>
+            </div>
+          </div>
+          <div class="callout ok" style="margin-top:12px;margin-bottom:0">
+            <strong>权限</strong>
+            分析接口通常需 <code>advertiser_campaign_edit</code>；请求/响应须使用文档规定的 Store Insights vendor MIME 类型（误用 SP Campaign 类型会 415）。
+          </div>
+        </div>
+
+        <div class="layer-arrow">▼ 数据来自 Amazon 归因与日志管道（滚动约 12 个月窗口）</div>
+
+        <div class="layer l-amz">
+          <div class="layer-label">L2 · Amazon 平台侧</div>
+          <div class="layer-grid">
+            <div class="box"><strong>Brand Store 线上店</strong><span>Store Builder 搭建、审核、发布</span></div>
+            <div class="box"><strong>流量入口</strong><span>SB 落地店、详情页品牌链、Tag 链接、其它</span></div>
+            <div class="box"><strong>Store Insights Console</strong><span>与 API 同源的运营看板</span></div>
+          </div>
+        </div>
+
+        <div class="layer-arrow">▼ 不经过 Brand Store Analytics API</div>
+
+        <div class="layer l-erp">
+          <div class="layer-label">并行数据源（需其它 API / 内部系统）</div>
+          <div class="layer-grid">
+            <div class="box highlight-out"><strong>SP-API / 订单报表</strong><span>财务级订单、库存、Buy Box</span></div>
+            <div class="box highlight-out"><strong>Attribution API</strong><span>站外 Tag 创建、活动管理（非店分析）</span></div>
+            <div class="box highlight-out"><strong>SP / SD / DSP 报表</strong><span>全账户广告；≠ Store SOURCE=ADS</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Flow -->
+    <section id="view-flow" class="view">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>标准集成调用链路</h2>
+          <p>先发现 brandEntityId，再按业务场景分支调用两条 Analytics 端点；支持分页与 filter。</p>
+        </div>
+        <div class="panel-body">
+          <div class="flow-wrap">
+            <div class="flow">
+              <div class="flow-node n-auth">
+                <div class="t">认证</div>
+                <div class="s">LWA Token<br/>Amazon-Advertising-API-ClientId<br/>Scope: profileId</div>
+              </div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node n-discover">
+                <div class="t">/v2/stores</div>
+                <div class="s">列出账号下旗舰店<br/>brandEntityId + pages</div>
+              </div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-branch">
+                <span class="flow-branch-label">按站点 / 店并行</span>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center">
+                  <div class="flow-node n-insights">
+                    <div class="t">POST …/insights</div>
+                    <div class="s">dimension + metrics<br/>+ filter + 分页</div>
+                  </div>
+                  <span class="flow-arrow">+</span>
+                  <div class="flow-node n-asin">
+                    <div class="t">POST …/asinMetrics</div>
+                    <div class="s">dimension=ASIN 或店级 TOTAL</div>
+                  </div>
+                </div>
+              </div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node n-dash">
+                <div class="t">ERP / 数据仓</div>
+                <div class="s">ETL · 口径层 · 看板</div>
+              </div>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>请求体要点</strong>
+            <ul class="compact">
+              <li><code>startDate</code> / <code>endDate</code>：YYYY-MM-DD；Insights 最早约 2018-09-01</li>
+              <li><code>dimension</code>：Insights 必填；ASIN 接口省略 dimension 时仅店级 TOTAL 指标</li>
+              <li><code>filter</code>：pageIds、sources、tags（AND）；不可同时 sources + tags</li>
+              <li><code>paginationToken</code>：24h 内、相同请求体可翻页（单次最多约 1500 行）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Insights -->
+    <section id="view-insights" class="view">
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Store Insights 指标族</h2>
+            <p>POST /stores/{brandEntityId}/insights</p>
+          </div>
+          <div class="panel-body" style="padding-top:10px">
+            <p style="font-size:0.78rem;color:var(--muted);margin:0 0 10px">按类型分组（一次请求可带多个 metric，注意与 dimension 兼容）：</p>
+            <p style="margin:0 0 6px;font-size:0.72rem;color:var(--muted)">流量</p>
+            <span class="metric-tag traffic">VISITS</span>
+            <span class="metric-tag traffic">VIEWS</span>
+            <span class="metric-tag traffic">VISITORS</span>
+            <p style="margin:10px 0 6px;font-size:0.72rem;color:var(--muted)">互动（2024+）</p>
+            <span class="metric-tag engage">DWELL_TIME</span>
+            <span class="metric-tag engage">BOUNCE_RATE</span>
+            <span class="metric-tag engage">NEW_TO_STORE</span>
+            <p style="margin:10px 0 6px;font-size:0.72rem;color:var(--muted)">归因转化（访问后约 14 天）</p>
+            <span class="metric-tag conv">ORDERS</span>
+            <span class="metric-tag conv">UNITS</span>
+            <span class="metric-tag conv">SALES</span>
+            <p style="margin:10px 0 6px;font-size:0.72rem;color:var(--muted)">视频</p>
+            <span class="metric-tag video">VIDEO_STARTED</span>
+            <span class="metric-tag video">VIDEO_10S_PLAYED</span>
+            <span class="metric-tag video">VIDEO_25P/50P/75P_PLAYED</span>
+            <span class="metric-tag video">VIDEO_COMPLETED</span>
+            <p style="margin:10px 0 6px;font-size:0.72rem;color:var(--muted)">店质量 SQS（多数仅 dimension=DATE）</p>
+            <span class="metric-tag sqs">SCORE_LEVEL</span>
+            <span class="metric-tag sqs">RECOMMENDATIONS</span>
+            <span class="metric-tag sqs">CONTRIBUTORS</span>
+            <span class="metric-tag sqs">DWELL · PEER_DWELL</span>
+            <span class="metric-tag sqs">SALES_LAST_60_DAYS</span>
+            <span class="metric-tag sqs">PEER_SALES_LAST_60_DAYS</span>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>聚合维度 & 流量来源</h2>
+            <p>dimension 决定 metricsDetails 每行的拆分键</p>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <table>
+              <thead>
+                <tr><th>dimension</th><th>用途</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>DATE</code></td><td>日趋势；多日返回多行，非单行汇总</td></tr>
+                <tr><td><code>PAGE</code></td><td>子页 Top/Bottom、页面承接与跳出</td></tr>
+                <tr><td><code>SOURCE</code></td><td>ADS / ORGANIC / OTHER</td></tr>
+                <tr><td><code>TAG</code></td><td>活动追踪链接维度</td></tr>
+                <tr><td><code>STORE</code></td><td>店级 DWELL_TIME、BOUNCE_RATE、NEW_TO_STORE</td></tr>
+              </tbody>
+            </table>
+            <div style="padding:12px 14px;font-size:0.78rem">
+              <strong>TrafficSource</strong>
+              <ul class="compact">
+                <li><code>ADS</code> — OpenAPI 定义为 <strong>Sponsored Brands</strong> 带来的进店流量</li>
+                <li><code>ORGANIC</code> — 详情页等品牌链等自然入口</li>
+                <li><code>OTHER</code> — 其余未归类来源</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="callout danger">
+        <strong>口径提醒</strong>
+        ORDERS/SALES 为店访问归因估计值，≠ 财务订单；VISITORS 多日相加 ≠ 区间去重访客；
+        BOUNCE_RATE/DWELL_TIME 不宜跨日简单算术平均。
+      </div>
+    </section>
+
+    <!-- View: ASIN -->
+    <section id="view-asin" class="view">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>ASIN Engagement 漏斗</h2>
+          <p>POST /stores/{brandEntityId}/asinMetrics — 店内商品从曝光到订单</p>
+        </div>
+        <div class="panel-body">
+          <div class="flow-wrap">
+            <div class="flow" style="justify-content:flex-start;flex-wrap:nowrap;min-width:720px">
+              <div class="flow-node n-asin"><div class="t">RENDERS</div><div class="s">ASIN 在页渲染次数</div></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node n-asin"><div class="t">VIEWS</div><div class="s">被浏览</div></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node n-asin"><div class="t">IN_STOCK_VIEWS</div><div class="s">有货浏览 / IN_STOCK_RATE</div></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node n-asin"><div class="t">CLICKS</div><div class="s">CLICK_RATE</div></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node n-asin"><div class="t">ADD_TO_CARTS</div></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node n-insights"><div class="t">ORDERS · UNITS</div><div class="s">CONVERSION_RATE · 均价</div></div>
+            </div>
+          </div>
+          <div class="two-col" style="margin-top:14px">
+            <div class="callout ok" style="margin-top:0">
+              <strong>dimension = ASIN</strong>
+              返回每个 ASIN 一行；支持 <code>sortBy</code> + <code>orderBy</code>（排序字段须在 metrics 列表中）。
+            </div>
+            <div class="callout" style="margin-top:0">
+              <strong>省略 dimension</strong>
+              仅允许店级 <code>TOTAL_VIEWS</code>、<code>TOTAL_CLICKS</code>；与 ASIN 级指标混用 → 422。
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Matrix -->
+    <section id="view-matrix" class="view">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Insights：维度 × 指标兼容（摘要）</h2>
+          <p>完整枚举以 OpenAPI <code>InsightDimension</code> 描述为准</p>
+        </div>
+        <div class="panel-body" style="padding:0;overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>dimension ↓ / 指标 →</th>
+                <th>流量</th>
+                <th>互动</th>
+                <th>归因销售</th>
+                <th>店质量 SQS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>DATE</code></td>
+                <td class="yes">VISITS, VIEWS, VISITORS*</td>
+                <td class="yes">DWELL_TIME, BOUNCE_RATE, NEW_TO_STORE</td>
+                <td class="yes">ORDERS, UNITS, SALES</td>
+                <td class="yes">SCORE_LEVEL, RECOMMENDATIONS, …</td>
+              </tr>
+              <tr>
+                <td><code>PAGE</code></td>
+                <td class="yes">VISITS, VIEWS</td>
+                <td class="yes">DWELL_TIME, BOUNCE_RATE</td>
+                <td class="yes">ORDERS, UNITS, SALES</td>
+                <td class="no">—</td>
+              </tr>
+              <tr>
+                <td><code>SOURCE</code></td>
+                <td class="yes">VISITS, VIEWS</td>
+                <td class="yes">DWELL_TIME, BOUNCE_RATE</td>
+                <td class="yes">ORDERS, UNITS, SALES</td>
+                <td class="no">—</td>
+              </tr>
+              <tr>
+                <td><code>TAG</code></td>
+                <td class="yes">VISITS, VIEWS</td>
+                <td class="yes">DWELL_TIME, BOUNCE_RATE</td>
+                <td class="yes">ORDERS, UNITS, SALES</td>
+                <td class="no">—</td>
+              </tr>
+              <tr>
+                <td><code>STORE</code></td>
+                <td class="partial">店级汇总</td>
+                <td class="yes">DWELL_TIME, BOUNCE_RATE, NEW_TO_STORE</td>
+                <td class="no">—</td>
+                <td class="no">—</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="padding:10px 14px;margin:0;font-size:0.74rem;color:var(--muted)">* VISITORS 仅支持 DATE；不受 filter 影响。STORE 维度或省略 dimension 可做店级 DWELL_TIME / BOUNCE_RATE。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Boundary -->
+    <section id="view-boundary" class="view">
+      <div class="integration-map">
+        <div class="int-card">
+          <h3><span class="int-dot" style="background:var(--insights)"></span>Brand Store Analytics API</h3>
+          <p>读数：店流量、页面、来源、Tag、ASIN 漏斗、店质量建议、视频播放。</p>
+          <div class="rel">✅ 适合：多站点 KPI、改版前后、SB 落地店对照（SOURCE=ADS）</div>
+        </div>
+        <div class="int-card">
+          <h3><span class="int-dot" style="background:var(--amz)"></span>Store Builder / Console</h3>
+          <p>搭店、模块、素材、审核发布；Store Quality 操作建议的 CTA 链回 Builder。</p>
+          <div class="rel">❌ Analytics API 不替代建店与过审流程</div>
+        </div>
+        <div class="int-card">
+          <h3><span class="int-dot" style="background:#f472b6"></span>Attribution API + Tag</h3>
+          <p>站外活动、Publisher、click-through URL（可指向 Brand Store）。</p>
+          <div class="rel">🔗 Store Insights <code>dimension=TAG</code> 消费 Tag 维度结果，不创建 Tag</div>
+        </div>
+        <div class="int-card">
+          <h3><span class="int-dot" style="background:var(--api)"></span>Sponsored Brands</h3>
+          <p>落地 Brand Store 的广告流量；与 Store <code>SOURCE=ADS</code> 最可对齐。</p>
+          <div class="rel">⚠️ 全账户 SP/SD 花费 ≠ 全店 visits</div>
+        </div>
+        <div class="int-card">
+          <h3><span class="int-dot" style="background:var(--danger)"></span>SP-API / 财务 BI</h3>
+          <p>订单、库存、Buy Box、类目份额。</p>
+          <div class="rel">❌ 解释「有点击无订单」需并行接入</div>
+        </div>
+        <div class="int-card">
+          <h3><span class="int-dot" style="background:#86efac"></span>你们 ERP 子系统（P0）</h3>
+          <p>统一日/站点/页/ASIN 维度；模块分类、场景映射、版本档案为自建维表。</p>
+          <div class="rel">📁 参考：<code>amazon-brand-store-insights.md</code>、dashboard / channel demos</div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-head">
+          <h2>能 / 不能 对照</h2>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table>
+            <thead><tr><th>能力</th><th>Brand Store Ads API</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>列出店铺与页面 ID</td><td class="yes">✓ /v2/stores</td><td>后续 insights 的前置</td></tr>
+              <tr><td>按日/页/来源/Tag 拉流量与销售归因</td><td class="yes">✓ insights</td><td>滚动约 12 个月</td></tr>
+              <tr><td>店内 ASIN 漏斗</td><td class="yes">✓ asinMetrics</td><td>最多约 1500 ASIN/页</td></tr>
+              <tr><td>店质量评分与优化建议</td><td class="yes">✓ SQS 指标组</td><td>可选 35 种 language</td></tr>
+              <tr><td>页内模块 tile 级指标</td><td class="no">✗</td><td>需运营自建模块维表</td></tr>
+              <tr><td>创建/编辑/发布 Store 页面</td><td class="no">✗</td><td>Console / 独立内容 API</td></tr>
+              <tr><td>财务级订单对账</td><td class="no">✗</td><td>SP-API / 内部 BI</td></tr>
+              <tr><td>创建 Attribution Tag</td><td class="no">✗</td><td>Attribution API</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      本地静态页 · 双击打开或用静态服务器预览 · 口径以
+      <a href="https://dtrnk0o2zy01c.cloudfront.net/openapi/en-us/dest/Stores_prod_3p.json" target="_blank" rel="noopener" style="color:#7eb3ff">Stores_prod_3p.json</a>
+      与账号权限为准 · @beynawoo-code
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      var tabs = document.querySelectorAll(".tab");
+      var views = document.querySelectorAll(".view");
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          var id = tab.getAttribute("data-view");
+          tabs.forEach(function (t) { t.classList.toggle("active", t === tab); });
+          views.forEach(function (v) {
+            v.classList.toggle("active", v.id === "view-" + id);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

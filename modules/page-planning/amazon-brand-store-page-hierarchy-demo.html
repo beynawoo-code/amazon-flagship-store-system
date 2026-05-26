@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旗舰店 ERP · 页面层级与双分类管理（Demo）</title>
+  <script src="./amazon-brand-store-page-hierarchy-seed.js"></script>
+  <script src="./amazon-brand-store-page-hierarchy-store.js"></script>
+  <style>
+    :root {
+      --bg: #0a0e14; --panel: #121a26; --panel2: #0f1520; --border: #243044;
+      --text: #e8eef5; --muted: #8b9cb3; --amz: #ff9900; --erp: #a855f7;
+      --scene: #3b82f6; --content: #06b6d4; --ok: #22c55e; --warn: #f59e0b;
+      --danger: #f87171; --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font);
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255, 153, 0, 0.08), transparent),
+        radial-gradient(700px 400px at 100% 0%, rgba(168, 85, 247, 0.1), transparent),
+        var(--bg);
+      color: var(--text); line-height: 1.5;
+    }
+    .app { max-width: min(1360px, 100%); margin: 0 auto; padding: 20px 16px 48px; }
+    header { margin-bottom: 16px; }
+    h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 6px; }
+    .lead { color: var(--muted); font-size: 0.86rem; margin: 0; max-width: 960px; }
+    .badge {
+      display: inline-block; margin-bottom: 10px; padding: 4px 10px; border-radius: 999px;
+      font-size: 0.68rem; font-weight: 700; background: rgba(168, 85, 247, 0.12);
+      color: #c4b5fd; border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+    .nav-links { margin-top: 10px; font-size: 0.78rem; }
+    .nav-links a { color: #7eb3ff; margin-right: 12px; }
+    .dual-legend {
+      display: flex; flex-wrap: wrap; gap: 12px 20px; margin: 12px 0 14px;
+      padding: 10px 14px; background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); font-size: 0.78rem;
+    }
+    .dual-legend .col { flex: 1; min-width: 220px; }
+    .dual-legend strong { display: block; margin-bottom: 4px; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .chip {
+      display: inline-block; margin: 2px 4px 2px 0; padding: 2px 8px; border-radius: 6px;
+      font-size: 0.72rem; font-weight: 600;
+    }
+    .chip.scene { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35); }
+    .chip.content { background: rgba(6, 182, 212, 0.12); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.35); }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; margin-bottom: 14px;
+    }
+    .field label { display: block; font-size: 0.68rem; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .field input, .field select {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 10px; font-size: 0.82rem; min-width: 140px;
+    }
+    .field input { min-width: 200px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .tab {
+      padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    }
+    .tab.active { border-color: var(--erp); color: var(--text); background: rgba(168, 85, 247, 0.12); }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .panel-head {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--panel2);
+    }
+    .panel-head h2 { font-size: 0.92rem; margin: 0; flex: 1; }
+    .panel-head .hint { font-size: 0.72rem; color: var(--muted); width: 100%; }
+    .table-wrap { overflow-x: auto; max-height: min(70vh, 640px); overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    th, td { padding: 9px 11px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 0.68rem; background: var(--panel2); position: sticky; top: 0; z-index: 1; }
+    tr:hover td { background: #151d2b; }
+    tr.row-warn td { background: rgba(245, 158, 11, 0.06); }
+    tr.row-archived td { opacity: 0.5; }
+    code { font-family: ui-monospace, monospace; font-size: 0.7rem; color: #c4b5fd; }
+    .path-muted { color: var(--muted); font-size: 0.72rem; }
+    .tag {
+      display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+    }
+    .tag.warn { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.35); }
+    .tag.ok { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+    .tag.off { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
+    button {
+      padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: none;
+    }
+    .btn-primary { background: var(--erp); color: #fff; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-sm { padding: 5px 10px; font-size: 0.74rem; }
+    .btn-link { background: none; border: none; color: #7eb3ff; padding: 2px 6px; font-size: 0.74rem; cursor: pointer; font-weight: 600; }
+    .dict-grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 800px) { .dict-grid { grid-template-columns: 1fr; } }
+    .toast {
+      position: fixed; bottom: 20px; right: 20px; max-width: 380px; padding: 12px 16px;
+      border-radius: 10px; font-size: 0.82rem; z-index: 200; background: var(--panel);
+      border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .toast.ok { border-color: rgba(34, 197, 94, 0.5); }
+    .toast.err { border-color: rgba(248, 113, 113, 0.5); color: #fecaca; }
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 100;
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-backdrop[hidden] { display: none !important; }
+    .modal {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      width: min(560px, 100%); max-height: 90vh; overflow-y: auto; padding: 18px 20px;
+    }
+    .modal h3 { margin: 0 0 14px; font-size: 1rem; }
+    .form-grid { display: grid; gap: 12px; }
+    .form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 0.72rem; color: var(--muted); }
+    .form-grid input, .form-grid select, .form-grid textarea {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 10px; font-size: 0.85rem;
+    }
+    .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+    .tree-indent { padding-left: 0; }
+    .tree-indent.l1 { padding-left: 14px; }
+    .tree-indent.l2 { padding-left: 28px; }
+    footer { margin-top: 20px; font-size: 0.74rem; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <span class="badge">⑤ 站点与场景 · P0 Demo</span>
+      <h1>旗舰店 ERP · 页面层级与双分类管理</h1>
+      <p class="lead">
+        每个 Brand Store 页面必须同时绑定 <strong>页面场景分类</strong>（运营复盘 / 看板 T2）与
+        <strong>页面内容分类</strong>（信息架构 / 导购维度）。
+        种子数据来自 <code>docs/demand/旗舰店页面层级.xlsx</code>；非 US 站点 Excel 中可能仅有场景列，需在 ERP 中补全内容分类。
+      </p>
+      <div class="nav-links">
+        <a href="../_system/l5-api-capability/amazon-brand-store-api-architecture.html">API 架构图</a>
+        <a href="../analytics-and-iteration/amazon-brand-store-dashboard-demo.html">数据看板 Demo</a>
+        <a href="../_system/l2-menu/flagship-store_menu_v1.html">菜单蓝图</a>
+      </div>
+    </header>
+
+    <div class="dual-legend" id="taxonomyLegend"></div>
+
+    <div class="toolbar">
+      <div class="field" style="flex:1;min-width:200px">
+        <label>搜索页面名称</label>
+        <input type="search" id="qSearch" placeholder="Lighting Space、Home…" />
+      </div>
+      <div class="field">
+        <label>站点</label>
+        <select id="qMarketplace"><option value="">全部站点</option></select>
+      </div>
+      <div class="field">
+        <label>场景分类</label>
+        <select id="qScene"><option value="">全部</option></select>
+      </div>
+      <div class="field">
+        <label>内容分类</label>
+        <select id="qContent"><option value="">全部</option></select>
+      </div>
+      <div class="field">
+        <label>状态</label>
+        <select id="qStatus">
+          <option value="">全部</option>
+          <option value="incomplete">待补全双分类</option>
+          <option value="active">已维护</option>
+          <option value="archived">已归档</option>
+        </select>
+      </div>
+      <button type="button" class="btn-primary btn-sm" id="btnAddPage">+ 新页面</button>
+      <button type="button" class="btn-secondary btn-sm" id="btnSave">保存</button>
+      <button type="button" class="btn-secondary btn-sm" id="btnReset">重置种子</button>
+    </div>
+
+    <p id="statsMeta" style="font-size:0.78rem;color:var(--muted);margin:0 0 12px"></p>
+
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab active" data-tab="pages">页面清单</button>
+      <button type="button" class="tab" data-tab="tree">层级树视图</button>
+      <button type="button" class="tab" data-tab="dict">分类字典</button>
+      <button type="button" class="tab" data-tab="snapshots">映射快照</button>
+    </div>
+
+    <section id="tab-pages" class="tab-panel">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>页面清单（含历史，不删除）</h2>
+          <p class="hint">后台导出名称中的 <code>›</code> 表示父子层级；正式环境 page_id 对接 Ads API <code>/v2/stores</code> 的 storePageId。</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>站点</th>
+                <th>页面名称（后台导出）</th>
+                <th>层级</th>
+                <th>场景分类</th>
+                <th>内容分类</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="pagesTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-tree" class="tab-panel" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>按站点 · 页面路径树</h2>
+          <p class="hint">由导出名称解析；同一父路径下子页面共享前缀。</p>
+        </div>
+        <div class="panel-body" style="padding:14px" id="treeView"></div>
+      </div>
+    </section>
+
+    <section id="tab-dict" class="tab-panel" hidden>
+      <div class="dict-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>页面场景分类字典</h2>
+            <p class="hint">6 大基础场景 + 可扩展活动场景（正式版）</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>排序</th><th>code</th><th>中文名</th><th>类型</th><th></th></tr></thead>
+              <tbody id="sceneDictTbody"></tbody>
+            </table>
+          </div>
+          <div style="padding:10px 14px"><button type="button" class="btn-secondary btn-sm" id="btnAddScene">+ 场景分类</button></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>页面内容分类字典</h2>
+            <p class="hint">4 类内容组织维度（公共 / 空间 / 品类 / 生活方式）</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>排序</th><th>code</th><th>中文名</th><th>说明</th><th></th></tr></thead>
+              <tbody id="contentDictTbody"></tbody>
+            </table>
+          </div>
+          <div style="padding:10px 14px"><button type="button" class="btn-secondary btn-sm" id="btnAddContent">+ 内容分类</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-snapshots" class="tab-panel" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>页面 ↔ 双分类 · 月度映射快照</h2>
+          <p class="hint">改版或重分类后，历史看板按快照月归属旧分类（架构 K2 / 5.4）。</p>
+          <button type="button" class="btn-primary btn-sm" id="btnFreezeSnapshot">固化本月快照</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>快照月</th><th>固化时间</th><th>页面数</th><th></th></tr></thead>
+            <tbody id="snapshotsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      数据存于 localStorage（<code id="storageKeyLabel"></code>）· 双击本文件即可预览
+    </footer>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modalTitle">编辑页面</h3>
+      <form id="modalForm" class="form-grid"></form>
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" id="modalCancel">取消</button>
+        <button type="button" class="btn-primary" id="modalOk">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./amazon-brand-store-page-hierarchy-demo.js"></script>
+</body>
+</html>

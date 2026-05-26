@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旗舰店 ERP · Amazon Attribution Tag 管理（Demo）</title>
+  <script src="./amazon-attribution-tag-wizard-data.js"></script>
+  <script src="./amazon-attribution-taxonomy-config-store.js"></script>
+  <script>window.TaxonomyConfigStore?.applyToWizard();</script>
+  <script src="./amazon-attribution-tag-store.js"></script>
+  <script src="./amazon-attribution-tag-manage-data.js"></script>
+  <script src="./amazon-attribution-tag-filter-combo.js"></script>
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --panel: #121a26;
+      --panel2: #0f1520;
+      --border: #243044;
+      --text: #e8eef5;
+      --muted: #8b9cb3;
+      --amz: #ff9900;
+      --erp: #a855f7;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #f87171;
+      --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font);
+      background: radial-gradient(900px 500px at 0% 0%, rgba(168, 85, 247, 0.1), transparent),
+        radial-gradient(700px 400px at 100% 0%, rgba(255, 153, 0, 0.08), transparent), var(--bg);
+      color: var(--text); line-height: 1.5;
+    }
+    .app { max-width: min(1680px, 100%); margin: 0 auto; padding: 20px 16px 48px; }
+    header { margin-bottom: 20px; }
+    h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 6px; }
+    .lead { color: var(--muted); font-size: 0.88rem; margin: 0; max-width: 820px; }
+    .badge {
+      display: inline-block; margin-bottom: 10px; padding: 4px 10px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700; background: rgba(255, 153, 0, 0.12);
+      color: #fcd34d; border: 1px solid rgba(255, 153, 0, 0.35);
+    }
+    .nav-links { margin-top: 10px; font-size: 0.8rem; }
+    .nav-links a { color: #7eb3ff; margin-right: 12px; }
+    .kpi-row {
+      display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      margin-bottom: 16px;
+    }
+    .kpi {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; cursor: pointer; transition: border-color 0.15s;
+    }
+    .kpi:hover, .kpi.active { border-color: var(--erp); }
+    .kpi .num { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+    .kpi .lbl { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; margin-bottom: 12px;
+    }
+    .toolbar label { font-size: 0.72rem; color: var(--muted); }
+    .toolbar select, .toolbar input {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 10px; font-size: 0.82rem;
+    }
+    .toolbar .grow { flex: 1; min-width: 160px; }
+    button {
+      padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: none;
+    }
+    .btn-primary { background: var(--erp); color: #fff; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .table-wrap {
+      overflow-x: auto;
+      --sticky-w-name: 228px;
+      --sticky-w-shop: 92px;
+      --sticky-w-target: 80px;
+      --sticky-left-shop: var(--sticky-w-name);
+      --sticky-left-target: calc(var(--sticky-w-name) + var(--sticky-w-shop));
+    }
+    .table-wrap table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.8rem;
+    }
+    th, td {
+      padding: 10px 12px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      background: var(--panel);
+    }
+    th {
+      color: var(--muted); font-weight: 600; font-size: 0.72rem;
+      background: var(--panel2); white-space: nowrap;
+    }
+    tr:hover td { background: #151d2b; }
+    tr[data-id] { cursor: pointer; }
+    .col-sticky {
+      position: sticky;
+      z-index: 2;
+    }
+    th.col-sticky { z-index: 5; background: var(--panel2); }
+    td.col-sticky { z-index: 2; background: var(--panel); }
+    tr:hover td.col-sticky { background: #151d2b; }
+    .col-sticky-1 {
+      left: 0;
+      width: var(--sticky-w-name);
+      min-width: var(--sticky-w-name);
+      max-width: var(--sticky-w-name);
+    }
+    .col-sticky-2 {
+      left: var(--sticky-left-shop);
+      width: var(--sticky-w-shop);
+      min-width: var(--sticky-w-shop);
+    }
+    .col-sticky-3 {
+      left: var(--sticky-left-target);
+      width: var(--sticky-w-target);
+      min-width: var(--sticky-w-target);
+      box-shadow: 6px 0 10px -4px rgba(0, 0, 0, 0.45);
+    }
+    th.col-sticky-3, td.col-sticky-3 {
+      border-right: 1px solid var(--border);
+    }
+    .mono { font-family: ui-monospace, monospace; font-size: 0.7rem; word-break: break-all; }
+    .col-name { min-width: 0; max-width: var(--sticky-w-name); }
+    .cell-compact { white-space: nowrap; font-size: 0.75rem; }
+    .cell-muted { color: var(--muted); font-size: 0.72rem; }
+    .cell-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .user-chip {
+      display: inline-flex; align-items: center; gap: 6px; max-width: 120px;
+      font-size: 0.75rem; white-space: nowrap;
+    }
+    .user-avatar {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      object-fit: cover; border: 1px solid var(--border);
+    }
+    .user-avatar--initials {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.58rem; font-weight: 700; color: #fff; line-height: 1;
+    }
+    .cell-time { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+    .th-metric { font-size: 0.65rem; white-space: nowrap; min-width: 72px; }
+    th.th-metric-sortable {
+      cursor: pointer; user-select: none; text-align: right;
+    }
+    th.th-metric-sortable:hover { color: var(--text); }
+    th.th-metric-sortable.sorted { color: #c4b5fd; }
+    .th-sort-wrap { display: inline-flex; align-items: center; justify-content: flex-end; gap: 3px; }
+    .th-sort-icon { opacity: 0.35; font-size: 0.58rem; line-height: 1; }
+    th.th-metric-sortable.sorted .th-sort-icon { opacity: 1; }
+    .toolbar select[multiple] { min-width: 130px; max-height: 54px; vertical-align: middle; }
+    .filter-hint { display: block; font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+    .toolbar label.shop-filter { align-self: flex-start; }
+    .filter-panel {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; margin-bottom: 12px; overflow: visible;
+    }
+    .filter-panel-title { font-size: 0.72rem; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+    .filter-grid {
+      display: grid; gap: 10px 12px;
+      grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    }
+    .filter-grid label {
+      display: flex; flex-direction: column; gap: 4px;
+      font-size: 0.68rem; color: var(--muted);
+    }
+    .filter-grid select {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 8px; font-size: 0.78rem; width: 100%;
+    }
+    .filter-combo { position: relative; width: 100%; }
+    .filter-combo-field {
+      display: flex; align-items: stretch; width: 100%;
+      background: #0a0e14; border: 1px solid var(--border); border-radius: 8px;
+      overflow: hidden;
+    }
+    .filter-combo.open .filter-combo-field { border-color: var(--erp); }
+    .filter-combo-input {
+      flex: 1; min-width: 0; border: none; background: transparent; color: var(--text);
+      padding: 7px 8px; font-size: 0.78rem; outline: none;
+    }
+    .filter-combo-input[readonly] { cursor: pointer; }
+    .filter-combo-toggle {
+      flex-shrink: 0; width: 30px; border: none; border-left: 1px solid var(--border);
+      background: rgba(168, 85, 247, 0.08); color: var(--muted); cursor: pointer;
+      font-size: 0.85rem; line-height: 1; padding: 0;
+    }
+    .filter-combo-toggle:hover { color: var(--text); background: rgba(168, 85, 247, 0.18); }
+    .filter-combo.open .filter-combo-toggle { color: #c4b5fd; }
+    .filter-combo-list {
+      position: absolute; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px 0;
+      list-style: none; max-height: 220px; overflow-y: auto; z-index: 100;
+      background: #0f1520; border: 1px solid var(--border); border-radius: 8px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+    }
+    .filter-combo-list[hidden] { display: none !important; }
+    .filter-combo-option {
+      padding: 7px 10px; font-size: 0.76rem; cursor: pointer; line-height: 1.35;
+      word-break: break-all;
+    }
+    .filter-combo-option:hover, .filter-combo-option.is-highlight { background: rgba(168, 85, 247, 0.15); }
+    .filter-combo-option.is-selected { color: #c4b5fd; }
+    .filter-combo-empty { padding: 8px 10px; font-size: 0.75rem; color: var(--muted); }
+    label.filter-combo-label--wide { grid-column: span 2; min-width: 0; }
+    @media (max-width: 720px) {
+      label.filter-combo-label--wide { grid-column: span 1; }
+    }
+    .toolbar-row {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+      margin-bottom: 12px;
+    }
+    .toolbar label.date-range-filter { align-self: flex-start; flex: 1; min-width: 200px; }
+    .date-range-controls {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    }
+    .date-range-display {
+      font-size: 0.76rem; color: #a5b4c8; white-space: nowrap;
+      padding: 6px 10px; border-radius: 8px;
+      background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.22);
+    }
+    .date-range-display[hidden] { display: none !important; }
+    .date-custom {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 8px; border-radius: 8px;
+      background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.22);
+    }
+    .date-custom[hidden] { display: none !important; }
+    .date-custom input[type="date"] {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 8px; font-size: 0.76rem;
+    }
+    .date-custom .date-sep { color: var(--muted); font-size: 0.78rem; }
+    .pill {
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 600;
+      white-space: nowrap;
+    }
+    .pill-pending { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    .pill-active { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+    .pill-archived { background: rgba(139, 156, 179, 0.15); color: var(--muted); }
+    .pill-yes { background: rgba(34, 197, 94, 0.12); color: #86efac; }
+    .pill-no { background: rgba(248, 113, 113, 0.12); color: #fca5a5; }
+    .pill-link { background: rgba(168, 85, 247, 0.15); color: #e9d5ff; }
+    .pill-tag { background: rgba(255, 153, 0, 0.12); color: #fcd34d; }
+    .metrics { font-size: 0.75rem; color: var(--muted); }
+    .metrics strong { color: var(--text); }
+    .empty { padding: 40px; text-align: center; color: var(--muted); }
+    .drawer-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 40;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+    .drawer {
+      position: fixed; top: 0; right: 0; width: min(520px, 100vw); height: 100vh;
+      background: var(--panel); border-left: 1px solid var(--border); z-index: 50;
+      transform: translateX(100%); transition: transform 0.25s; overflow-y: auto;
+      padding: 20px 22px 32px;
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer h2 { font-size: 1rem; margin: 0 0 4px; }
+    .drawer .sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 16px; }
+    .drawer-close {
+      position: absolute; top: 14px; right: 14px; background: transparent;
+      border: 1px solid var(--border); color: var(--text); width: 32px; height: 32px;
+      border-radius: 8px; cursor: pointer; font-size: 1.1rem; line-height: 1;
+    }
+    .steps { display: flex; flex-direction: column; gap: 0; margin: 16px 0 20px; }
+    .step {
+      display: flex; gap: 12px; padding: 10px 0; position: relative;
+    }
+    .step:not(:last-child)::before {
+      content: ""; position: absolute; left: 11px; top: 32px; bottom: -2px;
+      width: 2px; background: var(--border);
+    }
+    .step-dot {
+      width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700;
+      border: 2px solid var(--border); background: var(--panel2); z-index: 1;
+    }
+    .step.done .step-dot { border-color: var(--ok); background: rgba(34, 197, 94, 0.2); color: #86efac; }
+    .step.current .step-dot { border-color: var(--erp); background: rgba(168, 85, 247, 0.2); color: #e9d5ff; }
+    .step-body { flex: 1; font-size: 0.82rem; }
+    .step-body .title { font-weight: 600; }
+    .step-body .desc { color: var(--muted); font-size: 0.75rem; margin-top: 2px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+    .field input, .field textarea, .field select {
+      width: 100%; background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 10px; font-size: 0.82rem;
+    }
+    .field textarea { min-height: 72px; font-family: ui-monospace, monospace; font-size: 0.72rem; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .data-panel {
+      margin-top: 16px; padding: 14px; border-radius: 10px;
+      background: rgba(34, 197, 94, 0.06); border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+    .data-panel h3 { font-size: 0.85rem; margin: 0 0 10px; color: #86efac; }
+    .data-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .data-grid .item { text-align: center; }
+    .data-grid .val { font-size: 1.1rem; font-weight: 700; }
+    .data-grid .key { font-size: 0.68rem; color: var(--muted); }
+    .drawer-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      padding: 12px 20px; background: #166534; color: #fff; border-radius: 10px;
+      font-size: 0.88rem; opacity: 0; pointer-events: none; transition: 0.25s; z-index: 99;
+    }
+    .toast.show { opacity: 1; }
+    footer.doc-footer { text-align: center; font-size: 0.72rem; color: var(--muted); margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="badge">② Tag 中心 · 配对与数据 Demo</div>
+      <h1>Amazon Attribution Tag 管理</h1>
+      <p class="lead">
+        品牌或渠道推广同事在 ERP 提交 Tag 需求后即进入 <code>pending_amazon</code>，由渠道推广统一在
+        <strong>Amazon Attribution Console</strong> 创建 Campaign/Ad Group 并回写配对。数据列字段与 Amazon Attribution Campaigns 报表导出一致。
+      </p>
+      <p class="nav-links">
+        <a href="./amazon-attribution-tag-create-demo.html">← 创建 Tag</a>
+        <a href="./amazon-attribution-tag-overview-demo.html">数据总览</a>
+        <a href="./amazon-attribution-taxonomy-config-demo.html">字典配置</a>
+        <a href="./attribution-campaign-create-sop.html">创建 SOP</a>
+      </p>
+    </header>
+
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <div class="filter-panel">
+      <p class="filter-panel-title">筛选条件（默认均为全部）</p>
+      <div class="filter-grid">
+        <label>店铺
+          <select id="filterShop"><option value="">全部</option></select>
+        </label>
+        <label>定位
+          <select id="filterTargeting">
+            <option value="">全部</option>
+            <option value="P">P · 单品</option>
+            <option value="S">S · 店铺</option>
+          </select>
+        </label>
+        <label class="filter-combo-label--wide">统一规范名称
+          <div class="filter-combo">
+            <div class="filter-combo-field">
+              <input type="text" class="filter-combo-input" autocomplete="off" spellcheck="false" />
+              <button type="button" class="filter-combo-toggle" aria-expanded="false" aria-label="展开选项">▾</button>
+            </div>
+            <input type="hidden" id="filterCanonical" value="" />
+            <ul class="filter-combo-list" role="listbox" hidden></ul>
+          </div>
+        </label>
+        <label>MSKU
+          <div class="filter-combo">
+            <div class="filter-combo-field">
+              <input type="text" class="filter-combo-input" autocomplete="off" />
+              <button type="button" class="filter-combo-toggle" aria-expanded="false" aria-label="展开选项">▾</button>
+            </div>
+            <input type="hidden" id="filterMsku" value="" />
+            <ul class="filter-combo-list" role="listbox" hidden></ul>
+          </div>
+        </label>
+        <label>活动名称
+          <div class="filter-combo">
+            <div class="filter-combo-field">
+              <input type="text" class="filter-combo-input" autocomplete="off" />
+              <button type="button" class="filter-combo-toggle" aria-expanded="false" aria-label="展开选项">▾</button>
+            </div>
+            <input type="hidden" id="filterCampaign" value="" />
+            <ul class="filter-combo-list" role="listbox" hidden></ul>
+          </div>
+        </label>
+        <label>落地页
+          <div class="filter-combo">
+            <div class="filter-combo-field">
+              <input type="text" class="filter-combo-input" autocomplete="off" />
+              <button type="button" class="filter-combo-toggle" aria-expanded="false" aria-label="展开选项">▾</button>
+            </div>
+            <input type="hidden" id="filterLanding" value="" />
+            <ul class="filter-combo-list" role="listbox" hidden></ul>
+          </div>
+        </label>
+        <label>广告类型 <select id="filterAdType"><option value="">全部</option></select></label>
+        <label>营销大类 <select id="filterStrategyMajor"><option value="">全部</option></select></label>
+        <label>营销小类 <select id="filterStrategyMinor"><option value="">全部</option></select></label>
+        <label>Publisher
+          <div class="filter-combo">
+            <div class="filter-combo-field">
+              <input type="text" class="filter-combo-input" autocomplete="off" />
+              <button type="button" class="filter-combo-toggle" aria-expanded="false" aria-label="展开选项">▾</button>
+            </div>
+            <input type="hidden" id="filterPublisher" value="" />
+            <ul class="filter-combo-list" role="listbox" hidden></ul>
+          </div>
+        </label>
+        <label>Tag 需求方 <select id="filterRequester"><option value="">全部</option></select></label>
+        <label>Console 创建方 <select id="filterConsoleCreator"><option value="">全部</option></select></label>
+        <label>ERP 状态
+          <select id="filterErp">
+            <option value="">全部</option>
+            <option value="pending_amazon">pending_amazon</option>
+            <option value="active">active</option>
+            <option value="archived">archived</option>
+          </select>
+        </label>
+        <label>Console
+          <select id="filterConsole">
+            <option value="">全部</option>
+            <option value="yes">已创建</option>
+            <option value="no">未创建</option>
+          </select>
+        </label>
+        <label>配对状态
+          <select id="filterLink">
+            <option value="">全部</option>
+            <option value="unlinked">未回写</option>
+            <option value="tag_only">仅 Tag</option>
+            <option value="linked">已完整配对</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="toolbar-row">
+      <label>币种 <select id="filterCurrency"><option value="USD">USD ($)</option></select></label>
+      <label class="date-range-filter">数据时间
+        <div class="date-range-controls">
+          <select id="filterDatePreset" title="按归因数据统计区间筛选">
+            <option value="">全部</option>
+            <option value="7d">近 7 天</option>
+            <option value="30d">近 30 天</option>
+            <option value="month">本月</option>
+            <option value="custom">自定义</option>
+          </select>
+          <span id="filterDateRangeDisplay" class="date-range-display" hidden></span>
+          <span class="date-custom" id="filterDateCustom" hidden>
+            <input type="date" id="filterDateFrom" aria-label="开始日期" />
+            <span class="date-sep">—</span>
+            <input type="date" id="filterDateTo" aria-label="结束日期" />
+          </span>
+        </div>
+      </label>
+      <button type="button" class="btn-secondary btn-sm" id="btnResetSeed">重置 Demo 数据</button>
+      <a href="./amazon-attribution-tag-create-demo.html"><button type="button" class="btn-primary">新建 Tag</button></a>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-sticky col-sticky-1">统一规范名称</th>
+              <th class="col-sticky col-sticky-2">店铺</th>
+              <th class="col-sticky col-sticky-3">定位</th>
+              <th>MSKU</th>
+              <th>活动名称</th>
+              <th>落地页</th>
+              <th>广告类型</th>
+              <th>营销大类</th>
+              <th>营销小类</th>
+              <th>Publisher</th>
+              <th>预计投放日期</th>
+              <th>ERP 状态</th>
+              <th>Console</th>
+              <th>配对状态</th>
+              <th>新建 Tag 需求方</th>
+              <th>需求提出时间</th>
+              <th>Console 创建方</th>
+              <th>Console 创建时间</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="click_throughs" scope="col" title="点击排序">Click-throughs</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="dpv" scope="col" title="点击排序">DPV</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="dpv_clicks" scope="col" title="点击排序">DPV clicks</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="total_dpv" scope="col" title="点击排序">Total DPV</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="atc" scope="col" title="点击排序">ATC</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="atc_clicks" scope="col" title="点击排序">ATC clicks</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="total_atc" scope="col" title="点击排序">Total ATC</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="purchases" scope="col" title="点击排序">Purchases</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="purchases_clicks" scope="col" title="点击排序">Purchases clicks</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="total_purchases" scope="col" title="点击排序">Total purchases</th>
+              <th class="th-metric th-metric-sortable th-metric-money" data-metric-key="product_sales" scope="col" title="点击排序">Product sales</th>
+              <th class="th-metric th-metric-sortable th-metric-money" data-metric-key="product_sales_clicks" scope="col" title="点击排序">Product sales clicks</th>
+              <th class="th-metric th-metric-sortable th-metric-money" data-metric-key="total_product_sales" scope="col" title="点击排序">Total product sales</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="units_sold" scope="col" title="点击排序">Units sold</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="units_sold_clicks" scope="col" title="点击排序">Units sold clicks</th>
+              <th class="th-metric th-metric-sortable" data-metric-key="total_units_sold" scope="col" title="点击排序">Total units sold</th>
+              <th class="th-metric th-metric-sortable th-metric-money" data-metric-key="brand_referral_bonus" scope="col" title="点击排序">Brand Referral Bonus</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptyState" hidden>暂无记录，请先在创建页提交或重置 Demo 数据。</div>
+    </div>
+
+    <footer class="doc-footer">Demo · 数据存于浏览器 localStorage · 作者：@beynawoo-code</footer>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <button type="button" class="drawer-close" id="drawerClose" aria-label="关闭">×</button>
+    <div id="drawerContent"></div>
+  </aside>
+
+  <div class="toast" id="toast"></div>
+  <script src="./amazon-attribution-tag-manage-demo.js"></script>
+</body>
+</html>

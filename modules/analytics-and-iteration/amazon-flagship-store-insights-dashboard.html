@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旗舰店看板 · Flagship Store Insights</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="../page-planning/amazon-brand-store-page-hierarchy-seed.js"></script>
+  <script src="./amazon-flagship-store-insights-data.js"></script>
+  <style>
+    :root {
+      --bg: #0a0e14; --panel: #121a26; --panel2: #0f1520; --border: #243044;
+      --text: #e8eef5; --muted: #8b9cb3; --amz: #ff9900; --da: #3b82f6;
+      --ok: #22c55e; --warn: #f59e0b; --danger: #f87171; --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font);
+      background:
+        radial-gradient(1000px 500px at 0% -5%, rgba(59, 130, 246, 0.1), transparent),
+        radial-gradient(800px 400px at 100% 0%, rgba(255, 153, 0, 0.07), transparent),
+        var(--bg);
+      color: var(--text); line-height: 1.5;
+    }
+    .app { max-width: min(1440px, 100%); margin: 0 auto; padding: 18px 14px 48px; }
+    header { margin-bottom: 14px; }
+    h1 { font-size: 1.38rem; font-weight: 700; margin: 0 0 6px; }
+    .lead { color: var(--muted); font-size: 0.86rem; margin: 0; max-width: 920px; }
+    .badge {
+      display: inline-block; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px;
+      font-size: 0.68rem; font-weight: 700; background: rgba(59, 130, 246, 0.12);
+      color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35);
+    }
+    .nav-links { margin-top: 8px; font-size: 0.76rem; }
+    .nav-links a { color: #7eb3ff; margin-right: 12px; }
+    .toolbar {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; margin-bottom: 12px;
+    }
+    .toolbar-row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; }
+    .toolbar-row + .toolbar-row { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+    .field label {
+      display: block; font-size: 0.65rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
+    }
+    .field select, .field input {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 10px; font-size: 0.82rem;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px;
+      border-radius: 8px; border: 1px solid var(--border); background: var(--panel2);
+      font-size: 0.76rem; cursor: pointer; user-select: none;
+    }
+    .chip.on { border-color: var(--da); background: rgba(59, 130, 246, 0.12); color: #93c5fd; }
+    .chip input { accent-color: var(--da); }
+    .preset-btn {
+      padding: 6px 10px; border-radius: 8px; font-size: 0.74rem; font-weight: 600;
+      border: 1px solid var(--border); background: var(--panel2); color: var(--muted); cursor: pointer;
+    }
+    .preset-btn.on { border-color: var(--amz); color: #fcd34d; background: rgba(255, 153, 0, 0.1); }
+    .tab-bar {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+      position: sticky; top: 0; z-index: 20; padding: 8px 0;
+      background: linear-gradient(var(--bg) 70%, transparent);
+    }
+    .tab-btn {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+      padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--panel); cursor: pointer; min-width: 100px;
+    }
+    .tab-btn .code { font-size: 0.62rem; font-weight: 800; color: var(--muted); letter-spacing: 0.04em; }
+    .tab-btn .name { font-size: 0.78rem; font-weight: 600; }
+    .tab-btn.active { border-color: var(--da); background: rgba(59, 130, 246, 0.14); }
+    .tab-btn.p1-tab .code { color: #fcd34d; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .section {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; margin-bottom: 14px;
+    }
+    .section h2 { font-size: 0.92rem; margin: 0 0 4px; }
+    .section .hint { font-size: 0.72rem; color: var(--muted); margin: 0 0 12px; }
+    .kpi-row {
+      display: grid; gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); margin-bottom: 14px;
+    }
+    .kpi {
+      background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+    }
+    .kpi.hero { border-color: rgba(255, 153, 0, 0.4); }
+    .kpi .lbl { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .kpi .num { font-size: 1.05rem; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .kpi .sub { font-size: 0.68rem; margin-top: 4px; }
+    .kpi .sub.up { color: #86efac; }
+    .kpi .sub.down { color: #fca5a5; }
+    .grid-2 { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+    .chart-box { height: 280px; position: relative; }
+    .chart-box.sm { height: 220px; }
+    .table-scroll { overflow: auto; max-height: 360px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-size: 0.65rem; font-weight: 600; white-space: nowrap; background: var(--panel2); position: sticky; top: 0; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tr.clickable { cursor: pointer; }
+    tr.clickable:hover td { background: rgba(59, 130, 246, 0.08); }
+    tr.active td { background: rgba(59, 130, 246, 0.12); }
+    .sub-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .sub-tab {
+      padding: 6px 12px; border-radius: 8px; font-size: 0.74rem; font-weight: 600;
+      border: 1px solid var(--border); background: var(--panel2); color: var(--muted); cursor: pointer;
+    }
+    .sub-tab.on { border-color: var(--da); color: var(--text); }
+    .inline-field { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .inline-field input { flex: 1; min-width: 200px; }
+    .health-ok { color: #86efac; }
+    .health-warn { color: #fcd34d; }
+    .health-bad { color: #fca5a5; }
+    footer { margin-top: 20px; text-align: center; font-size: 0.72rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <span class="badge">① 旗舰店看板 · Flagship Store Insights · Demo</span>
+      <h1>旗舰店看板 · Flagship Store Insights</h1>
+      <p class="lead">
+        按 <a href="../_system/l2-menu/flagship-store_menu_v1.html" style="color:#7eb3ff">菜单蓝图</a>
+        实现 T1–T7 七大 Tab；统一筛选：站点（多选 / 北美 / 欧洲 / 全站）+ 时间粒度（周/月/季/年）+ 同比/环比。
+        数值为演示数据，正式环境对接 Store Insights / ASIN Metrics / 数仓。
+      </p>
+      <p class="nav-links">
+        <a href="../_system/l2-menu/flagship-store_menu_v1.html">菜单蓝图</a>
+        <a href="../page-planning/amazon-brand-store-page-hierarchy-demo.html">页面双分类 ERP</a>
+        <a href="../_system/l5-api-capability/amazon-brand-store-api-architecture.html">API 架构</a>
+        <a href="./amazon-store-channel-source-demo.html">渠道来源 Demo</a>
+      </p>
+    </header>
+
+    <div class="toolbar">
+      <div class="toolbar-row">
+        <div class="field">
+          <label>站点预设</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" class="preset-btn on" data-preset="all">全站 7 站点</button>
+            <button type="button" class="preset-btn" data-preset="na">北美聚合</button>
+            <button type="button" class="preset-btn" data-preset="eu">欧洲聚合</button>
+            <button type="button" class="preset-btn" data-preset="custom">自定义</button>
+          </div>
+        </div>
+        <div class="field" style="flex:1;min-width:280px">
+          <label>站点（多选聚合）</label>
+          <div class="chips" id="marketChips"></div>
+        </div>
+      </div>
+      <div class="toolbar-row">
+        <div class="field">
+          <label>时间粒度</label>
+          <select id="timeGrain">
+            <option value="week">周</option>
+            <option value="month" selected>月</option>
+            <option value="quarter">季</option>
+            <option value="year">年</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>对比</label>
+          <select id="compareMode">
+            <option value="wow" selected>环比（上一同长区间）</option>
+            <option value="yoy">同比（去年同期）</option>
+            <option value="none">无对比</option>
+          </select>
+        </div>
+        <div class="field">
+          <label id="periodLabel">当前区间</label>
+          <span id="periodHint" style="font-size:0.8rem;color:#a5b4c8"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar" id="tabBar"></div>
+
+    <!-- T1 -->
+    <section id="panel-t1" class="tab-panel active" data-tab="t1">
+      <div class="kpi-row" id="t1Kpis"></div>
+      <div class="grid-2">
+        <div class="section">
+          <h2>站点占比</h2>
+          <p class="hint">多站点选择时：总量 + 各站点占比（Sales / Visits）</p>
+          <div class="chart-box"><canvas id="t1SiteShare"></canvas></div>
+        </div>
+        <div class="section">
+          <h2>站点明细（所选指标）</h2>
+          <div class="chart-box"><canvas id="t1SiteBar"></canvas></div>
+        </div>
+      </div>
+      <div class="section">
+        <h2>漏斗指标明细</h2>
+        <p class="hint">按业务漏斗顺序 · Store Insights 归因口径（≠ 财务订单）</p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>阶段</th><th>指标</th><th class="num">当前</th><th class="num">对比期</th><th class="num">变化</th>
+              </tr>
+            </thead>
+            <tbody id="t1FunnelBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- T2 -->
+    <section id="panel-t2" class="tab-panel" data-tab="t2">
+      <div class="section">
+        <h2>场景核心数据 · 6 大基础场景</h2>
+        <p class="hint">公共 / 居家 / 户外 / 观影 / 新潮 / 季节 — 当前区间合计 + 同环比</p>
+        <div class="chart-box"><canvas id="t2SceneBar"></canvas></div>
+        <div class="table-scroll" style="margin-top:12px">
+          <table>
+            <thead>
+              <tr>
+                <th>场景</th><th class="num">Visits</th><th class="num">Orders</th><th class="num">Sales</th>
+                <th class="num">CVR</th><th class="num">环比</th>
+              </tr>
+            </thead>
+            <tbody id="t2SceneTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="section">
+          <h2>场景下钻趋势</h2>
+          <p class="hint">单场景 · 近 6 个月 Sales（季度复盘视角）</p>
+          <div class="inline-field">
+            <label style="font-size:0.72rem;color:var(--muted)">场景</label>
+            <select id="t2TrendScene"></select>
+          </div>
+          <div class="chart-box sm"><canvas id="t2SceneTrend"></canvas></div>
+        </div>
+        <div class="section">
+          <h2>活动场景视图</h2>
+          <p class="hint">大促等活动型场景独立分析（演示）</p>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>活动</th><th>归属场景</th><th class="num">Visits</th><th class="num">Sales</th></tr></thead>
+              <tbody id="t2CampaignBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- T3 -->
+    <section id="panel-t3" class="tab-panel" data-tab="t3">
+      <div class="inline-field">
+        <label style="font-size:0.72rem;color:var(--muted)">场景筛选</label>
+        <select id="t3SceneFilter"></select>
+        <label style="font-size:0.72rem;color:var(--muted)">映射快照月</label>
+        <select id="t3SnapshotMonth">
+          <option value="current">当前映射（实时）</option>
+          <option value="2026-04">2026-04 快照</option>
+          <option value="2026-03">2026-03 快照</option>
+          <option value="2026-02">2026-02 快照</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="section">
+          <h2>场景下页面清单</h2>
+          <p class="hint">含历史页面，不删除；含内容分类列（ERP 维表）</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>站点</th><th>页面</th><th>场景</th><th>内容</th>
+                  <th class="num">Visits</th><th class="num">Sales</th><th class="num">环比</th>
+                </tr>
+              </thead>
+              <tbody id="t3PageList"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="section">
+          <h2>单页面同比环比</h2>
+          <p class="hint" id="t3PageHint">点击左侧页面行查看</p>
+          <div id="t3PageCompare"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- T4 -->
+    <section id="panel-t4" class="tab-panel" data-tab="t4">
+      <div class="sub-tabs" id="t4SubTabs">
+        <button type="button" class="sub-tab on" data-t4="bucket">渠道三分桶</button>
+        <button type="button" class="sub-tab" data-t4="sb">SB 渠道明细</button>
+        <button type="button" class="sub-tab" data-t4="other">Other · Tag/站外</button>
+        <button type="button" class="sub-tab" data-t4="organic">Organic 自然流量</button>
+      </div>
+      <div id="t4Content"></div>
+    </section>
+
+    <!-- T5 -->
+    <section id="panel-t5" class="tab-panel" data-tab="t5">
+      <div class="section">
+        <h2>5 大品线核心数据</h2>
+        <p class="hint">居家 / 户外 / 季节 / 观影 / 新潮（按 SKU 归类）</p>
+        <div class="chart-box sm"><canvas id="t5LineChart"></canvas></div>
+        <div class="table-scroll" style="margin-top:12px">
+          <table>
+            <thead>
+              <tr><th>品线</th><th class="num">Sales</th><th class="num">Orders</th><th class="num">Units</th><th class="num">同比</th></tr>
+            </thead>
+            <tbody id="t5LineTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="section">
+        <h2>品线下 SKU 明细</h2>
+        <div class="inline-field">
+          <label style="font-size:0.72rem;color:var(--muted)">品线</label>
+          <select id="t5LineSelect"></select>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>SKU</th><th>ASIN</th><th class="num">Views</th><th class="num">Orders</th><th class="num">Sales</th></tr>
+            </thead>
+            <tbody id="t5SkuTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- T6 -->
+    <section id="panel-t6" class="tab-panel" data-tab="t6">
+      <div class="section">
+        <h2>重点品看板（Hero SKU）</h2>
+        <p class="hint">SO 标记重点品 · 同年同比（演示）</p>
+        <div class="kpi-row" id="t6HeroKpis"></div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>SKU</th><th>品线</th><th class="num">Sales</th><th class="num">Orders</th><th class="num">同比</th></tr>
+            </thead>
+            <tbody id="t6HeroTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="section">
+          <h2>Top SKU 排行</h2>
+          <p class="hint">默认按月 Sales 前 20</p>
+          <div class="inline-field">
+            <select id="t6RankBy">
+              <option value="sales">按 Sales</option>
+              <option value="orders">按 Orders</option>
+              <option value="views">按 Views</option>
+            </select>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>#</th><th>SKU</th><th class="num">Sales</th><th class="num">Orders</th></tr></thead>
+              <tbody id="t6TopTable"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="section">
+          <h2>SKU 多选搜索对比</h2>
+          <p class="hint">12-23 会议诉求：一次输入多个 SKU（逗号分隔）</p>
+          <div class="inline-field">
+            <input type="text" id="t6SkuInput" placeholder="H6076, H6199, H705ABC" value="H6076, H6199" />
+            <button type="button" class="preset-btn on" id="t6SkuSearch">对比</button>
+          </div>
+          <div class="chart-box sm"><canvas id="t6SkuChart"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- T7 -->
+    <section id="panel-t7" class="tab-panel" data-tab="t7">
+      <div class="kpi-row" id="t7Kpis"></div>
+      <div class="grid-2">
+        <div class="section">
+          <h2>旗舰店 vs 全店</h2>
+          <p class="hint">旗舰店归因出单 / 全店出单 = 占比（P1 · 需销售明细）</p>
+          <div class="chart-box"><canvas id="t7ShareChart"></canvas></div>
+        </div>
+        <div class="section">
+          <h2>跨子系统数据健康</h2>
+          <p class="hint">ASIN-SKU 主数据 / 销售明细 / API 就绪状态</p>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>子系统</th><th>状态</th><th>说明</th></tr></thead>
+              <tbody id="t7HealthBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      演示数据 · 口径分层：Store 归因 Sales ≠ 财务订单 · SOURCE=ADS 对齐 SB
+    </footer>
+  </div>
+
+  <script src="./amazon-flagship-store-insights-dashboard.js"></script>
+</body>
+</html>

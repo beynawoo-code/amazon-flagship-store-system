@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon Attribution 创建 SOP · Console ↔ ERP 双轨</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #07090f;
+      --bg-card: #0e1422;
+      --bg-el: #141b2e;
+      --border: rgba(255,255,255,.08);
+      --txt: #dde6f5;
+      --txt2: #7a90b0;
+      --txt3: #4a5e78;
+      --erp: #a855f7;
+      --erp-bg: rgba(168,85,247,.12);
+      --erp-border: rgba(168,85,247,.35);
+      --amz: #f59e0b;
+      --amz-bg: rgba(245,158,11,.1);
+      --amz-border: rgba(245,158,11,.35);
+      --sync: #22c55e;
+      --sync-bg: rgba(34,197,94,.1);
+      --sync-border: rgba(34,197,94,.35);
+      --warn: #f97316;
+      --font: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+    html { font-size: 14px; scroll-behavior: smooth }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--txt);
+      line-height: 1.55;
+      padding: 0;
+    }
+
+    /* layout */
+    .layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh }
+    .sidebar {
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+    }
+    .sidebar h2 {
+      font-size: 11px; font-weight: 800; letter-spacing: .1em;
+      color: var(--txt3); text-transform: uppercase; margin-bottom: 16px;
+    }
+    .sidebar a {
+      display: block; font-size: 12.5px; color: var(--txt2);
+      text-decoration: none; padding: 8px 10px; border-radius: 8px;
+      margin-bottom: 2px; transition: background .15s, color .15s;
+    }
+    .sidebar a:hover { background: var(--bg-el); color: var(--txt) }
+    .sidebar a.active { background: var(--erp-bg); color: var(--erp); font-weight: 600 }
+
+    .main { padding: 40px 48px 100px; max-width: 1100px }
+
+    /* header */
+    .page-header { margin-bottom: 32px }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 99px;
+      background: var(--erp-bg); border: 1px solid var(--erp-border);
+      font-size: 10px; font-weight: 700; color: var(--erp);
+      letter-spacing: .06em; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .page-header h1 {
+      font-size: 28px; font-weight: 800; letter-spacing: -.03em;
+      background: linear-gradient(135deg, #e8ecf4, #c084fc 50%, #f59e0b);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+    .lead {
+      font-size: 14px; color: var(--txt2); max-width: 720px;
+      padding: 14px 18px; border-radius: 12px;
+      background: var(--bg-card); border: 1px solid var(--border);
+    }
+    .lead strong { color: var(--txt) }
+
+    /* meta grid */
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+      margin: 24px 0 36px;
+    }
+    .meta-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .meta-item .k { font-size: 10px; font-weight: 700; color: var(--txt3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px }
+    .meta-item .v { font-size: 13px; color: var(--txt) }
+
+    /* sections */
+    section { margin-bottom: 48px; scroll-margin-top: 24px }
+    section > h2 {
+      font-size: 18px; font-weight: 800; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    section > h2 .num {
+      font-size: 11px; font-weight: 800; color: var(--erp);
+      background: var(--erp-bg); border: 1px solid var(--erp-border);
+      padding: 2px 8px; border-radius: 6px;
+    }
+    h3 { font-size: 14px; font-weight: 700; margin: 20px 0 12px; color: var(--txt) }
+    h3 .phase {
+      display: inline-block; font-size: 10px; font-weight: 800;
+      padding: 2px 8px; border-radius: 4px; margin-right: 8px;
+      vertical-align: middle;
+    }
+    h3 .phase-a { background: var(--erp-bg); color: var(--erp); border: 1px solid var(--erp-border) }
+    h3 .phase-b { background: var(--amz-bg); color: var(--amz); border: 1px solid var(--amz-border) }
+    h3 .phase-c { background: var(--sync-bg); color: var(--sync); border: 1px solid var(--sync-border) }
+
+    /* flow visual (css) */
+    .flow-lane {
+      display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr;
+      gap: 0; align-items: stretch; margin: 24px 0;
+    }
+    .lane {
+      border-radius: 14px; padding: 16px;
+      border: 1px solid;
+    }
+    .lane.erp { background: var(--erp-bg); border-color: var(--erp-border) }
+    .lane.amz { background: var(--amz-bg); border-color: var(--amz-border) }
+    .lane.back { background: var(--sync-bg); border-color: var(--sync-border) }
+    .lane-title { font-size: 11px; font-weight: 800; letter-spacing: .05em; margin-bottom: 12px; text-transform: uppercase }
+    .lane.erp .lane-title { color: var(--erp) }
+    .lane.amz .lane-title { color: var(--amz) }
+    .lane.back .lane-title { color: var(--sync) }
+    .step-card {
+      background: rgba(0,0,0,.25); border-radius: 8px;
+      padding: 10px 12px; margin-bottom: 8px; font-size: 12px;
+    }
+    .step-card:last-child { margin-bottom: 0 }
+    .step-card .sn { font-size: 10px; font-weight: 800; opacity: .7; margin-bottom: 2px }
+    .arrow-col {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--txt3); font-size: 20px; font-weight: 300;
+    }
+
+    /* mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px; margin: 16px 0 24px;
+      overflow-x: auto;
+    }
+
+    /* path pills */
+    .path-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px }
+    .path-card {
+      border-radius: 12px; padding: 16px; border: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+    .path-card.standard { border-color: var(--erp-border) }
+    .path-card.bulk { border-color: var(--amz-border) }
+    .path-card h4 { font-size: 13px; font-weight: 800; margin-bottom: 8px }
+    .path-card.standard h4 { color: var(--erp) }
+    .path-card.bulk h4 { color: var(--amz) }
+    .path-card p { font-size: 12px; color: var(--txt2) }
+
+    /* tables */
+    .table-wrap { overflow-x: auto; margin: 12px 0 20px; border-radius: 12px; border: 1px solid var(--border) }
+    table { width: 100%; border-collapse: collapse; font-size: 12px }
+    th {
+      background: var(--bg-el); text-align: left; padding: 10px 12px;
+      font-size: 10px; font-weight: 700; color: var(--txt3);
+      text-transform: uppercase; letter-spacing: .04em;
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--txt2); vertical-align: top }
+    tr:last-child td { border-bottom: none }
+    tr:hover td { background: rgba(255,255,255,.02) }
+    td strong, td b { color: var(--txt); font-weight: 600 }
+    td code {
+      font-family: ui-monospace, monospace; font-size: 11px;
+      background: rgba(0,0,0,.35); padding: 1px 5px; border-radius: 4px;
+      color: #c4b5fd;
+    }
+    td.center { text-align: center }
+    .yes { color: var(--sync) }
+    .no { color: #ef4444 }
+
+    /* callout */
+    .callout {
+      border-radius: 10px; padding: 12px 16px; margin: 16px 0;
+      font-size: 13px; border-left: 3px solid;
+    }
+    .callout.k1 { background: rgba(239,68,68,.08); border-color: #ef4444; color: var(--txt2) }
+    .callout.k1 strong { color: #fca5a5 }
+    .callout.product { background: var(--erp-bg); border-color: var(--erp); color: var(--txt2) }
+
+    /* checklist */
+    .checklist { list-style: none; margin: 12px 0 }
+    .checklist li {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 14px; margin-bottom: 6px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; font-size: 13px; color: var(--txt2);
+    }
+    .checklist li::before {
+      content: ''; flex-shrink: 0; width: 18px; height: 18px;
+      border: 2px solid var(--txt3); border-radius: 4px; margin-top: 2px;
+    }
+
+    /* api matrix */
+    .api-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 16px 0 }
+    .api-grid .head { background: var(--bg-el); font-size: 10px; font-weight: 700; color: var(--txt3); padding: 10px 14px; text-transform: uppercase }
+    .api-grid .cell { padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--txt2) }
+    .api-grid .cell:first-child { color: var(--txt) }
+
+    /* refs */
+    .refs a { color: #7eb3ff; text-decoration: none; font-size: 12px; word-break: break-all }
+    .refs a:hover { text-decoration: underline }
+
+    /* footer */
+    .tag-p0 { display: inline-block; font-size: 9px; font-weight: 800; color: #22c55e;
+      background: rgba(34,197,94,.15); padding: 2px 6px; border-radius: 4px; margin-left: 4px }
+    .taxonomy-link {
+      display: block; margin-top: 16px; padding: 12px 14px; border-radius: 10px;
+      background: var(--erp-bg); border: 1px solid var(--erp-border);
+      font-size: 12px; color: var(--txt2); text-decoration: none;
+    }
+    .taxonomy-link:hover { color: var(--txt) }
+    .taxonomy-link strong { color: #c084fc }
+    .doc-footer {
+      margin-top: 48px; padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 11px; color: var(--txt3); text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr }
+      .sidebar { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--border) }
+      .main { padding: 24px 20px 60px }
+      .meta-grid, .path-row, .flow-lane { grid-template-columns: 1fr }
+      .arrow-col { display: none }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" aria-label="目录">
+      <h2>目录</h2>
+      <a href="#overview">速览</a>
+      <a href="#s1">§1 双轨总览</a>
+      <a href="#s2">§2 标准路径</a>
+      <a href="#s3">§3 批量路径</a>
+      <a href="#s4">§4 字段字典</a>
+      <a href="#s5">§5 字段映射</a>
+      <a href="#s5-tax">§5.2 渠道字典</a>
+      <a href="channel-taxonomy-v1.html">↗ 渠道字典 HTML</a>
+      <a href="#s6">§6 API 分工</a>
+      <a href="#s7">§7 验收清单</a>
+      <a href="#s8">§8 截图占位</a>
+      <a href="#s9">§9 参考链接</a>
+    </nav>
+
+    <main class="main">
+      <header class="page-header" id="overview">
+        <div class="badge">amazon-flagship-store-system · SOP v0.4</div>
+        <h1>Amazon Attribution 创建 SOP</h1>
+        <p class="lead">
+          <strong>一页速览</strong>：ERP 负责命名规范与元数据登记；Amazon Advertising Console 负责 Campaign / Ad Group / Tag 实测；报表经 Attribution API 或控制台回流 ERP。<strong>Campaign 结构无法仅靠 API 创建</strong>（见 §6）。
+        </p>
+        <div class="meta-grid">
+          <div class="meta-item"><div class="k">主责角色</div><div class="v">CP（渠道推广）</div></div>
+          <div class="meta-item"><div class="k">适用站点</div><div class="v">US / CA / UK / DE / FR / IT / ES</div></div>
+          <div class="meta-item"><div class="k">资格</div><div class="v">Brand Registry 卖家、Vendor、代理商</div></div>
+          <div class="meta-item"><div class="k">ERP 入口</div><div class="v">② Tag 中心 → 2.1 创建向导 / 2.2 同步</div></div>
+          <div class="meta-item" style="grid-column:1/-1"><div class="k">Amazon 入口</div><div class="v">Advertising Console → Measurement &amp; Reporting → Amazon Attribution</div></div>
+        </div>
+        <a class="taxonomy-link" href="channel-taxonomy-v1.html"><strong>渠道字典 v1.2</strong>：Amazon Channel 五选一 + 营销策略大小类 + Publisher（Google/FB/IG）→ 打开可视化字典</a>
+      </header>
+
+      <section id="s1">
+        <h2><span class="num">§1</span> 双轨流程总览</h2>
+
+        <div class="flow-lane" aria-label="三泳道流程">
+          <div class="lane erp">
+            <div class="lane-title">ERP · Tag 中心</div>
+            <div class="step-card"><div class="sn">A1–A3</div>创建向导 → 命名校验 → pending_amazon</div>
+          </div>
+          <div class="arrow-col">→</div>
+          <div class="lane amz">
+            <div class="lane-title">Amazon Console</div>
+            <div class="step-card"><div class="sn">B1–B9</div>Create campaign → 选品 → Ad Group → 复制 Tag</div>
+          </div>
+          <div class="arrow-col">→</div>
+          <div class="lane back">
+            <div class="lane-title">回写 ERP</div>
+            <div class="step-card"><div class="sn">C1–C3</div>同步 Tag / ID → active → 报表回流</div>
+          </div>
+        </div>
+
+        <div class="mermaid-wrap">
+          <pre class="mermaid">
+flowchart LR
+  subgraph ERP["ERP · Tag 中心"]
+    W1[创建向导]
+    W2[命名校验]
+    W3[pending_amazon]
+    W4[同步 Tag]
+  end
+  subgraph AMZ["Amazon Console"]
+    A1[Create campaign]
+    A2[Ad Group + 选品]
+    A3[复制 Tag]
+  end
+  W1 --> W2 --> W3 --> A1 --> A2 --> A3 --> W4
+          </pre>
+        </div>
+
+        <div class="path-row">
+          <div class="path-card standard">
+            <h4>标准路径 · Create manually</h4>
+            <p>单条或少量 Tag：KOL / SNS / 联盟 / 独立落地页等。</p>
+          </div>
+          <div class="path-card bulk">
+            <h4>批量路径 · Upload file</h4>
+            <p>仅 Google Search、Facebook/Instagram。单文件最多约 <strong>10 万</strong> 关键词 / <strong>8,500</strong> 条 Meta 广告。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="s2">
+        <h2><span class="num">§2</span> 标准路径：步骤清单</h2>
+
+        <h3><span class="phase phase-a">Phase A</span> ERP 内（必须先做）</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>步</th><th>操作</th><th>产出</th></tr></thead>
+            <tbody>
+              <tr><td class="center"><strong>A1</strong></td><td>进入 <strong>Tag 中心 → 创建向导</strong>：品牌 → 站点 → SKU → <strong>Amazon Channel（5 选 1）</strong> → <strong>营销大类</strong> → <strong>营销子类</strong> → <strong>Publisher</strong> →（红人）是否付费 → 活动日期</td><td><code>amazon_channel</code> + <code>strategy_*</code> + <code>publisher_name</code></td></tr>
+              <tr><td class="center"><strong>A2</strong></td><td><strong>命名预览与校验</strong>：无冲突提交；有冲突改日期/渠道或 SO 确认 SKU</td><td><code>tag_request_id</code>，状态 <code>pending_amazon</code></td></tr>
+              <tr><td class="center"><strong>A3</strong></td><td>记录建议 Campaign 名、Ad Group 名、落地页类型（PDP / Store）</td><td>供 Phase B 照抄</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout k1"><strong>强约束 K1</strong>：<code>canonical_name</code> = <code>{品牌}-{站点}-{SKU}-{name_short}-{YYYYMMDD}</code>。<code>name_short</code> = 营销大类+子类（例 <code>PSoINF</code>，勿仅用 <code>INF</code>）。见 <a href="channel-taxonomy-v1.html" style="color:#fca5a5">渠道字典</a>。</div>
+
+        <h3><span class="phase phase-b">Phase B</span> Amazon Console（官方 SOP 对齐）</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>步</th><th>操作</th><th>Amazon 字段</th></tr></thead>
+            <tbody>
+              <tr><td class="center"><strong>B1</strong></td><td>登录 <a href="https://advertising.amazon.ca/sign-in" target="_blank" rel="noopener">Advertising Console</a> → Measurement &amp; Reporting → Amazon Attribution → Create campaign</td><td>—</td></tr>
+              <tr><td class="center"><strong>B2</strong></td><td>Creation method 选 <strong>Create manually</strong></td><td><code>creation_method</code></td></tr>
+              <tr><td class="center"><strong>B3</strong></td><td>Products：推广 SKU + Add variations；缺货/无图/无价不可选</td><td><code>measured_asins[]</code></td></tr>
+              <tr><td class="center"><strong>B4</strong></td><td>Ad group name：<strong>粘贴 ERP <code>canonical_name</code></strong></td><td><code>ad_group_name</code></td></tr>
+              <tr><td class="center"><strong>B5</strong></td><td>Publisher：见 <a href="amazon-attribution-publishers-v1.html" style="color:#7eb3ff">Publisher 选型</a> — Google 选 <code>google ads</code>；FB/IG/联盟/KOL 用 <strong>New</strong></td><td><code>publisher</code></td></tr>
+              <tr><td class="center"><strong>B6</strong></td><td>Channel：与 ERP <code>amazon_channel</code> 一致（Search / Social / Video / Email / Display）</td><td><code>amazon_channel</code></td></tr>
+              <tr><td class="center"><strong>B7</strong></td><td>Click-through URL：单品 → PDP；多品/品牌 → Brand Store</td><td><code>click_through_url</code></td></tr>
+              <tr><td class="center"><strong>B8</strong></td><td>保存后复制 Attribution Tag</td><td><code>attribution_tag_raw</code></td></tr>
+              <tr><td class="center"><strong>B9</strong></td><td>Tag 填入站外广告最终 URL</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3><span class="phase phase-c">Phase C</span> 回写 ERP</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>步</th><th>操作</th><th>系统字段</th></tr></thead>
+            <tbody>
+              <tr><td class="center"><strong>C1</strong></td><td>Tag 列表 → 链接与 Attribution 同步；粘贴 Tag 或填 Campaign/Ad Group ID</td><td><code>attribution_tag_raw</code>, <code>amazon_campaign_id</code>, <code>amazon_ad_group_id</code></td></tr>
+              <tr><td class="center"><strong>C2</strong></td><td>状态改为 <code>active</code>；无点击可按规范归档</td><td><code>status</code></td></tr>
+              <tr><td class="center"><strong>C3</strong></td><td>（可选）Attribution API 定时拉报表或 Console 核对首周</td><td><code>last_report_sync_at</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="s3">
+        <h2><span class="num">§3</span> 批量路径：Google / Meta</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>步</th><th>操作</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td class="center"><strong>B1</strong></td><td>ERP 导出 <code>canonical_name</code> 列作 bulk 命名参考</td><td>对齐 §2 Phase A</td></tr>
+              <tr><td class="center"><strong>B2</strong></td><td>Console：<strong>Upload file to create in bulk</strong></td><td>仅 Google Search、FB/IG</td></tr>
+              <tr><td class="center"><strong>B3</strong></td><td>确定本批共用 ASIN；不同商品集拆文件</td><td><a href="https://advertising.amazon.ca/help/GD3X8KXBFKKC4BRJ" target="_blank" rel="noopener">Bulk upload 帮助</a></td></tr>
+              <tr><td class="center"><strong>B4</strong></td><td>tag sheets → Google Ads / Meta Ads Manager</td><td>旧 Tag 复用，新 Tag 新建</td></tr>
+              <tr><td class="center"><strong>C1</strong></td><td>ERP 批量导入 <code>bulk_batch_id</code>、<code>external_ad_id</code> ↔ <code>canonical_name</code></td><td>P1：API <code>groupBy=CREATIVE</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="s4">
+        <h2><span class="num">§4</span> 字段字典（Amazon Console）</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>字段</th><th>必填</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>Campaign name</td><td class="center">是</td><td>建议 <code>{品牌}_{站点}_{主题}_{YYYYMM}</code></td></tr>
+              <tr><td>Creation method</td><td class="center">是</td><td><code>manual</code> | <code>bulk_upload</code></td></tr>
+              <tr><td>Products (ASIN)</td><td class="center">是</td><td>在库、有图有价；同品牌非推广品计入 Total</td></tr>
+              <tr><td>Ad group name</td><td class="center">是</td><td><strong>必须与 ERP <code>canonical_name</code> 一致</strong></td></tr>
+              <tr><td>Publisher / Channel</td><td class="center">是</td><td>长尾渠道 Publisher 选 New</td></tr>
+              <tr><td>Click-through URL</td><td class="center">是</td><td>PDP 或 Store URL</td></tr>
+              <tr><td>Attribution Tag</td><td class="center">生成</td><td>挂站外 URL；Google/Meta 可用 API macro 模板</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="s5">
+        <h2><span class="num">§5</span> ERP ↔ Amazon 字段映射</h2>
+        <h3>5.1 主数据映射（创建向导 → Console）</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ERP 字段</th><th>类型</th><th>Amazon 字段</th><th>方向</th><th>备注</th></tr></thead>
+            <tbody>
+              <tr><td><code>tag_request_id</code></td><td>UUID</td><td>—</td><td>ERP only</td><td>主键</td></tr>
+              <tr><td><code>brand_code</code></td><td>string</td><td>命名</td><td>ERP→命名</td><td>如 Govee</td></tr>
+              <tr><td><code>marketplace_code</code></td><td>enum</td><td>Profile</td><td>ERP→Console</td><td>决定登录 Profile</td></tr>
+              <tr><td><code>sku</code> / <code>measured_asins</code></td><td>string / array</td><td>Products</td><td>ERP→Console</td><td>含变体 ASIN</td></tr>
+              <tr><td><code>amazon_channel</code></td><td>enum</td><td><strong>Channel</strong></td><td>ERP→照抄</td><td>5 选 1 · 见 5.2</td></tr>
+              <tr><td><code>strategy_major_code</code></td><td>enum</td><td>—</td><td>ERP</td><td>营销大类 · 别名 channel_major</td></tr>
+              <tr><td><code>strategy_minor_code</code></td><td>enum</td><td>—</td><td>ERP</td><td>营销子类</td></tr>
+              <tr><td><code>publisher_name</code></td><td>string</td><td><strong>Publisher</strong></td><td>ERP→Console</td><td>Google / FB / IG / New</td></tr>
+              <tr><td><code>paid_flag</code></td><td>bool</td><td>—</td><td>ERP</td><td>KOL/合作付费标记</td></tr>
+              <tr><td><code>canonical_name</code></td><td>string</td><td><strong>Ad group name</strong></td><td>ERP→照抄</td><td><strong>报表 join 键</strong></td></tr>
+              <tr><td><code>campaign_name_suggested</code></td><td>string</td><td>Campaign name</td><td>建议</td><td>可微调主题</td></tr>
+              <tr><td><code>landing_page_type</code></td><td>enum</td><td>Click-through URL</td><td>ERP→Console</td><td>pdp | store</td></tr>
+              <tr><td><code>attribution_tag_raw</code></td><td>text</td><td>Attribution Tag</td><td>Console/API→ERP</td><td>勿改参数</td></tr>
+              <tr><td><code>amazon_campaign_id</code> / <code>amazon_ad_group_id</code></td><td>string</td><td>campaignId / adGroupId</td><td>Console→ERP</td><td>对账</td></tr>
+              <tr><td><code>status</code></td><td>enum</td><td>—</td><td>ERP</td><td>draft | pending_amazon | active | archived</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:11px;color:var(--txt3);margin-bottom:20px">完整 20+ 字段见同源 Markdown：<code>attribution-campaign-create-sop.md</code></p>
+
+        <h3 id="s5-tax">5.2 Amazon Channel · 营销策略</h3>
+        <p style="font-size:12px;color:var(--txt2);margin-bottom:12px">完整字典 v1.2：<a href="channel-taxonomy-v1.html" style="color:#7eb3ff">channel-taxonomy-v1.html</a> · <a href="channel-taxonomy-v1.json" style="color:#7eb3ff">JSON</a></p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>amazon_channel</th><th>Console</th><th>营销策略（P0 示例）</th><th>Publisher</th><th>Bulk</th></tr></thead>
+            <tbody>
+              <tr><td><code>search</code></td><td>Search</td><td>paid_search · ps_performance / ps_brand</td><td>Google</td><td class="center yes">Google Search</td></tr>
+              <tr><td><code>social</code></td><td>Social</td><td>paid_social · psoc_influencer；organic_social · osoc_brand_owned；affiliate</td><td>Facebook, Instagram, Levanta</td><td class="center yes">Meta</td></tr>
+              <tr><td><code>display</code></td><td>Display</td><td>display · dsp_generic</td><td>TTD, DV360</td><td class="center no">否</td></tr>
+              <tr><td><code>video</code></td><td>Video</td><td>paid_video · pv_generic</td><td>YouTube, TikTok</td><td class="center no">否</td></tr>
+              <tr><td><code>email</code></td><td>Email</td><td>email · em_promo / em_generic</td><td>Klaviyo</td><td class="center no">否</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:11px;color:var(--txt3);margin:12px 0 20px">Google / Facebook / Instagram 填 <strong>Publisher</strong>，不填 Channel。营销策略见字典按 Channel 分组表。</p>
+
+        <h3>5.3 报表指标映射</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Amazon metric</th><th>ERP 字段</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>Click-throughs</td><td><code>clicks</code></td><td>—</td></tr>
+              <tr><td>attributedDetailPageViewsClicks14d</td><td><code>dpv</code></td><td>推广 ASIN</td></tr>
+              <tr><td>attributedPurchases14d / attributedSales14d</td><td><code>orders</code> / <code>sales</code></td><td>14 天 last-touch</td></tr>
+              <tr><td>brb_bonus_amount</td><td><code>brb_bonus</code></td><td>US Seller + BRB</td></tr>
+              <tr><td>totalAttributedSales14d</td><td><code>total_sales</code></td><td>含 brand halo</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="s6">
+        <h2><span class="num">§6</span> API 与 Console 分工</h2>
+        <div class="api-grid">
+          <div class="head">能力</div><div class="head">Console</div><div class="head">Attribution API</div>
+          <div class="cell">创建 Campaign / Ad Group / 选品</div><div class="cell center yes">✅</div><div class="cell center no">❌</div>
+          <div class="cell">macro / nonMacro Tag 模板</div><div class="cell center yes">✅</div><div class="cell center yes">✅ GET /attribution/tags/*</div>
+          <div class="cell">Google/Meta 万级 Tag</div><div class="cell center yes">✅ Bulk</div><div class="cell center">≠ 全流程</div>
+          <div class="cell">PERFORMANCE / PRODUCTS 报表</div><div class="cell center yes">✅</div><div class="cell center yes">✅ POST /attribution/report</div>
+        </div>
+        <div class="callout product"><strong>P0 产品含义</strong>：Tag 自助创建 = ERP 向导 + 强命名 + 指引 Console 落地 + 回写 Tag；非 ERP 内一键 API 建 Campaign。</div>
+      </section>
+
+      <section id="s7">
+        <h2><span class="num">§7</span> 验收检查表</h2>
+        <ul class="checklist">
+          <li>ERP 已有 <code>tag_request_id</code>；<code>amazon_channel</code> + <code>strategy_major_code</code> + <code>strategy_minor_code</code> 合法</li>
+          <li><code>name_short</code> 为组合短码（营销大类+子类），已通过唯一性校验</li>
+          <li>Amazon Ad group name 与 <code>canonical_name</code> 完全一致</li>
+          <li>ASIN 在库、有图有价；变体已 Add variations</li>
+          <li>Channel / Publisher 与站外投放一致</li>
+          <li>Click-through URL 正确（PDP vs Store）</li>
+          <li><code>attribution_tag_raw</code> 已回写，状态 <code>active</code></li>
+          <li>站外 URL 已挂 Tag，抽查点击正常</li>
+          <li>（US）BRB 已 enrollment 且报表含 brb_bonus</li>
+        </ul>
+      </section>
+
+      <section id="s8">
+        <h2><span class="num">§8</span> 截图占位（v0.1 待补）</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>编号</th><th>画面</th><th>路径</th></tr></thead>
+            <tbody>
+              <tr><td>S1</td><td>Attribution 入口</td><td><code>assets/sop/attribution-01-entry.png</code></td></tr>
+              <tr><td>S2</td><td>Create manually</td><td><code>assets/sop/attribution-02-create-manual.png</code></td></tr>
+              <tr><td>S3</td><td>Products + variations</td><td><code>assets/sop/attribution-03-products.png</code></td></tr>
+              <tr><td>S4</td><td>Ad group + Tag</td><td><code>assets/sop/attribution-04-adgroup-tag.png</code></td></tr>
+              <tr><td>S5</td><td>ERP 创建向导</td><td><code>assets/sop/attribution-05-erp-wizard.png</code></td></tr>
+              <tr><td>S6</td><td>ERP 同步回写</td><td><code>assets/sop/attribution-06-erp-sync.png</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="s9" class="refs">
+        <h2><span class="num">§9</span> 参考链接</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>文档</th><th>链接</th></tr></thead>
+            <tbody>
+              <tr><td>Create Attribution campaign (CA)</td><td><a href="https://advertising.amazon.ca/help/GJXTJCLK4WTWTQWU" target="_blank" rel="noopener">advertising.amazon.ca/help/GJXTJCLK4WTWTQWU</a></td></tr>
+              <tr><td>Bulk upload</td><td><a href="https://advertising.amazon.ca/help/GD3X8KXBFKKC4BRJ" target="_blank" rel="noopener">advertising.amazon.ca/help/GD3X8KXBFKKC4BRJ</a></td></tr>
+              <tr><td>Attribution API</td><td><a href="https://advertising.amazon.com/API/docs/en-us/guides/amazon-attribution/how-to" target="_blank" rel="noopener">advertising.amazon.com/API/docs/.../how-to</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="doc-footer">v0.4 · 2026-05-19 · 作者：@beynawoo-code</footer>
+    </main>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: {
+      primaryColor: '#1e1533', primaryTextColor: '#dde6f5', primaryBorderColor: '#a855f7',
+      lineColor: '#7a90b0', secondaryColor: '#2a1f0a', tertiaryColor: '#0e2218'
+    }});
+
+    const links = document.querySelectorAll('.sidebar a');
+    const sections = [...links].map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+    const onScroll = () => {
+      let cur = links[0];
+      sections.forEach((sec, i) => {
+        if (sec.getBoundingClientRect().top <= 120) cur = links[i];
+      });
+      links.forEach(l => l.classList.remove('active'));
+      if (cur) cur.classList.add('active');
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  </script>
+</body>
+</html>

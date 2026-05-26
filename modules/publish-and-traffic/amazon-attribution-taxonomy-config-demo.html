@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旗舰店 ERP · 广告类型与营销策略配置（Demo）</title>
+  <script src="./amazon-attribution-tag-wizard-data.js"></script>
+  <script src="./amazon-attribution-taxonomy-config-store.js"></script>
+  <script>window.TaxonomyConfigStore?.applyToWizard();</script>
+  <style>
+    :root {
+      --bg: #0a0e14; --panel: #121a26; --panel2: #0f1520; --border: #243044;
+      --text: #e8eef5; --muted: #8b9cb3; --amz: #ff9900; --erp: #a855f7;
+      --ok: #22c55e; --warn: #f59e0b; --danger: #f87171; --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font);
+      background: radial-gradient(900px 500px at 0% 0%, rgba(168, 85, 247, 0.1), transparent),
+        radial-gradient(700px 400px at 100% 0%, rgba(255, 153, 0, 0.08), transparent), var(--bg);
+      color: var(--text); line-height: 1.5;
+    }
+    .app { max-width: min(1280px, 100%); margin: 0 auto; padding: 20px 16px 48px; }
+    header { margin-bottom: 18px; }
+    h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 6px; }
+    .lead { color: var(--muted); font-size: 0.88rem; margin: 0; max-width: 900px; }
+    .badge {
+      display: inline-block; margin-bottom: 10px; padding: 4px 10px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700; background: rgba(168, 85, 247, 0.12);
+      color: #c4b5fd; border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+    .nav-links { margin-top: 10px; font-size: 0.8rem; }
+    .nav-links a { color: #7eb3ff; margin-right: 12px; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; margin-bottom: 14px;
+    }
+    .toolbar .meta { font-size: 0.78rem; color: var(--muted); flex: 1; min-width: 200px; }
+    .tabs {
+      display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .tab {
+      padding: 8px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border); background: var(--panel);
+      color: var(--muted);
+    }
+    .tab.active { border-color: var(--erp); color: var(--text); background: rgba(168, 85, 247, 0.12); }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .panel-head {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--panel2);
+    }
+    .panel-head h2 { font-size: 0.92rem; margin: 0; flex: 1; }
+    .panel-head .hint { font-size: 0.72rem; color: var(--muted); width: 100%; margin-top: 2px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 0.7rem; background: var(--panel2); white-space: nowrap; }
+    tr:hover td { background: #151d2b; }
+    tr.disabled-row td { opacity: 0.45; }
+    code { font-family: ui-monospace, monospace; font-size: 0.72rem; color: #c4b5fd; }
+    .tag {
+      display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 2px 6px;
+      border-radius: 4px; margin-left: 4px;
+    }
+    .tag.p0 { background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.35); }
+    .tag.off { background: rgba(248, 113, 113, 0.12); color: #fca5a5; }
+    .tag.bulk { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+    .channel-pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 12px; }
+    .pill {
+      padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border); background: var(--panel2); color: var(--muted);
+    }
+    .pill.active { border-color: var(--amz); color: #fcd34d; background: rgba(255, 153, 0, 0.1); }
+    .pill .cnt { font-weight: 400; opacity: 0.75; margin-left: 4px; }
+    .major-block { border-top: 1px solid var(--border); }
+    .major-head {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      padding: 10px 14px; background: rgba(0, 0, 0, 0.15); cursor: pointer;
+    }
+    .major-head:hover { background: rgba(168, 85, 247, 0.06); }
+    .major-head h3 { font-size: 0.88rem; margin: 0; flex: 1; min-width: 160px; }
+    .major-head .codes { font-size: 0.72rem; color: var(--muted); }
+    .minor-table { margin: 0 14px 12px 28px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .minor-table table { font-size: 0.76rem; }
+    .minor-table th { font-size: 0.65rem; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    button {
+      padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: none;
+    }
+    .btn-primary { background: var(--erp); color: #fff; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-sm { padding: 5px 10px; font-size: 0.74rem; }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid rgba(248, 113, 113, 0.4); }
+    .btn-link {
+      background: none; border: none; color: #7eb3ff; padding: 2px 6px; font-size: 0.74rem;
+      font-weight: 600; cursor: pointer;
+    }
+    .toast {
+      position: fixed; bottom: 20px; right: 20px; max-width: 360px; padding: 12px 16px;
+      border-radius: 10px; font-size: 0.82rem; z-index: 200; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border); background: var(--panel);
+    }
+    .toast.ok { border-color: rgba(34, 197, 94, 0.5); }
+    .toast.err { border-color: rgba(248, 113, 113, 0.5); color: #fecaca; }
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 100;
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-backdrop[hidden] { display: none !important; }
+    .modal {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      width: min(520px, 100%); max-height: 90vh; overflow-y: auto; padding: 18px 20px;
+    }
+    .modal h3 { margin: 0 0 14px; font-size: 1rem; }
+    .form-grid { display: grid; gap: 12px; }
+    .form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 0.72rem; color: var(--muted); }
+    .form-grid input, .form-grid select, .form-grid textarea {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 10px; font-size: 0.84rem; font-family: inherit;
+    }
+    .form-grid .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-check { flex-direction: row !important; align-items: center; gap: 8px !important; color: var(--text) !important; }
+    .form-check input { width: auto; accent-color: var(--erp); }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .empty { padding: 32px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+    footer.doc-footer { margin-top: 32px; font-size: 0.72rem; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="badge">② Tag 中心 · 字典配置 Demo</div>
+      <h1>广告类型与营销策略配置</h1>
+      <p class="lead">
+        维护 Amazon Console <strong>Channel（广告类型）</strong> 与 ERP 内部 <strong>营销大类 / 营销子类</strong>。
+        保存后写入本地存储并同步至创建向导字典；<strong>已打开的创建页请刷新</strong>后生效。
+        规范见 <a href="./channel-taxonomy-v1.html" style="color:#7eb3ff">channel-taxonomy v1.2</a>。
+      </p>
+      <p class="nav-links">
+        <a href="./amazon-attribution-tag-manage-demo.html">← Tag 管理</a>
+        <a href="./amazon-attribution-tag-create-demo.html">创建 Tag</a>
+        <a href="./amazon-attribution-tag-overview-demo.html">数据总览</a>
+        <a href="./channel-taxonomy-v1.html">渠道字典只读</a>
+      </p>
+    </header>
+
+    <div class="toolbar">
+      <span class="meta" id="statsMeta">—</span>
+      <button type="button" class="btn-secondary btn-sm" id="btnExport">导出 JSON</button>
+      <button type="button" class="btn-secondary btn-sm" id="btnReset">恢复种子</button>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab active" data-tab="adtypes" role="tab">广告类型（Amazon Channel）</button>
+      <button type="button" class="tab" data-tab="strategy" role="tab">营销大类 · 小类</button>
+    </div>
+
+    <section class="panel" id="panelAdtypes" role="tabpanel">
+      <div class="panel-head">
+        <h2>广告类型</h2>
+        <p class="hint">对应 Console Channel 下拉；<code>console_label</code> 须与亚马逊后台显示一致（如 Search / Social）。</p>
+        <button type="button" class="btn-primary btn-sm" id="btnAddChannel">新增类型</button>
+      </div>
+      <div class="table-wrap">
+        <table id="tableChannels">
+          <thead>
+            <tr>
+              <th>排序</th>
+              <th>代码</th>
+              <th>Console 显示</th>
+              <th>中文名</th>
+              <th>大类数</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="channelTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" id="panelStrategy" role="tabpanel" hidden>
+      <div class="panel-head">
+        <h2>营销策略 · 按广告类型</h2>
+        <p class="hint"><code>name_short</code> = 大类短码 + 子类后缀，全局唯一；子类须隶属所选 Channel 下的大类。</p>
+        <button type="button" class="btn-primary btn-sm" id="btnAddMajor">新增大类</button>
+      </div>
+      <div class="channel-pills" id="channelPills"></div>
+      <div id="strategyTree"></div>
+    </section>
+
+    <footer class="doc-footer">Demo · localStorage · 作者：@beynawoo-code</footer>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modalTitle">编辑</h3>
+      <form id="modalForm" class="form-grid"></form>
+      <div class="modal-foot">
+        <button type="button" class="btn-secondary" id="modalCancel">取消</button>
+        <button type="button" class="btn-primary" id="modalSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./amazon-attribution-taxonomy-config-demo.js"></script>
+</body>
+</html>

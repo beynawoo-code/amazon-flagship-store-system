@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>亚马逊旗舰店子系统 · 菜单架构 v1.0</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07090f;
+      --bg-card: #0e1422;
+      --bg-el: #141b2e;
+      --border: rgba(255,255,255,.07);
+      --txt: #dde6f5;
+      --txt2: #7a90b0;
+      --txt3: #4a5e78;
+      --font: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+      /* Role colors */
+      --cp: #a855f7;       /* 渠道推广 紫 */
+      --cp-bg: rgba(168,85,247,.12);
+      --cp-border: rgba(168,85,247,.35);
+
+      --so: #f97316;       /* 旗舰店运营 橙 */
+      --so-bg: rgba(249,115,22,.12);
+      --so-border: rgba(249,115,22,.35);
+
+      --da: #3b82f6;       /* 数据分析师 蓝 */
+      --da-bg: rgba(59,130,246,.12);
+      --da-border: rgba(59,130,246,.35);
+
+      --bo: #22c55e;       /* 业务负责人 绿 */
+      --bo-bg: rgba(34,197,94,.12);
+      --bo-border: rgba(34,197,94,.35);
+
+      --m-cyan: #06b6d4;
+      --m-amber: #f59e0b;
+      --m-red: #ef4444;
+      --m-yellow: #facc15;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+    html { font-size: 13px; scroll-behavior: smooth }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--txt);
+      line-height: 1.5;
+      padding: 40px 48px 80px;
+      min-width: 1280px;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px }
+    ::-webkit-scrollbar-track { background: transparent }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px }
+
+    /* ─── PAGE HEADER ─── */
+    .page-header { text-align: center; margin-bottom: 32px; }
+    .page-header .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 16px; border-radius: 99px;
+      background: rgba(59,130,246,.12);
+      border: 1px solid rgba(59,130,246,.3);
+      font-size: 11px; font-weight: 700; color: var(--da);
+      letter-spacing: .08em; text-transform: uppercase; margin-bottom: 16px;
+    }
+    .page-header h1 {
+      font-size: 34px; font-weight: 900; letter-spacing: -.04em;
+      background: linear-gradient(135deg, #e8ecf4 0%, #7eb3ff 45%, #c084fc 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .page-header p { font-size: 13px; color: var(--txt2); max-width: 780px; margin: 0 auto; }
+
+    /* ─── BOUNDARY CALLOUT ─── */
+    .boundary {
+      background: linear-gradient(135deg, rgba(168,85,247,.08), rgba(59,130,246,.05));
+      border: 1px solid rgba(168,85,247,.25);
+      border-radius: 14px;
+      padding: 18px 24px;
+      margin: 0 auto 40px;
+      max-width: 900px;
+      text-align: center;
+    }
+    .boundary-label {
+      font-size: 10px; font-weight: 800; letter-spacing: .1em;
+      color: var(--cp); text-transform: uppercase; margin-bottom: 6px;
+    }
+    .boundary-text { font-size: 13.5px; color: var(--txt); line-height: 1.65; font-weight: 500; }
+    .boundary-text b { color: #c084fc; }
+
+    /* ─── ROLE LEGEND ─── */
+    .role-legend {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+      margin-bottom: 36px;
+    }
+    .role-card {
+      padding: 18px; border-radius: 14px;
+      border: 1px solid; position: relative; overflow: hidden;
+    }
+    .role-card.cp { background: var(--cp-bg); border-color: var(--cp-border); }
+    .role-card.so { background: var(--so-bg); border-color: var(--so-border); }
+    .role-card.da { background: var(--da-bg); border-color: var(--da-border); }
+    .role-card.bo { background: var(--bo-bg); border-color: var(--bo-border); }
+    .role-card .role-code {
+      display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .08em;
+      padding: 3px 8px; border-radius: 4px;
+      background: rgba(0,0,0,.3); margin-bottom: 8px;
+    }
+    .role-card.cp .role-code { color: var(--cp); }
+    .role-card.so .role-code { color: var(--so); }
+    .role-card.da .role-code { color: var(--da); }
+    .role-card.bo .role-code { color: var(--bo); }
+    .role-card h4 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .role-card .role-sub { font-size: 11px; color: var(--txt2); margin-bottom: 10px; }
+    .role-card .role-main { font-size: 11px; color: var(--txt2); line-height: 1.6; }
+    .role-card.cp h4 { color: var(--cp); }
+    .role-card.so h4 { color: var(--so); }
+    .role-card.da h4 { color: var(--da); }
+    .role-card.bo h4 { color: var(--bo); }
+
+    /* ─── USAGE LEGEND BAR ─── */
+    .usage-legend {
+      display: flex; justify-content: center; gap: 20px;
+      margin-bottom: 40px; padding: 14px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: 12px;
+      flex-wrap: wrap;
+    }
+    .usage-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--txt2);
+    }
+    .usage-mark { font-size: 14px; font-weight: 800; }
+
+    /* ─── SECTION HEADER ─── */
+    .sec-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+    }
+    .sec-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--da), var(--cp));
+      color: #fff;
+    }
+    .sec-title { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+    .sec-desc { font-size: 12px; color: var(--txt2); margin-top: 2px; }
+
+    /* ─── MODULE GRID ─── */
+    .module-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+      margin-bottom: 40px;
+    }
+    .module-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    .module-card:hover { border-color: rgba(59,130,246,.3); }
+    .module-card.full { grid-column: span 2; }
+
+    .module-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+      position: relative;
+    }
+    .module-header::before {
+      content: ''; position: absolute;
+      left: 0; top: 0; bottom: 0; width: 4px;
+    }
+    .module-num {
+      font-size: 13px; font-weight: 900;
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .module-title-group { flex: 1; min-width: 0; }
+    .module-title { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+    .module-sub { font-size: 11.5px; color: var(--txt2); line-height: 1.5; }
+    .module-owner {
+      flex-shrink: 0;
+      padding: 4px 10px; border-radius: 99px;
+      font-size: 10px; font-weight: 700; letter-spacing: .05em;
+    }
+
+    /* Module color variants */
+    .mod-cp .module-header::before { background: linear-gradient(180deg, var(--cp), transparent); }
+    .mod-cp .module-num { background: var(--cp-bg); color: var(--cp); border: 1px solid var(--cp-border); }
+    .mod-cp .module-owner { background: var(--cp-bg); color: var(--cp); border: 1px solid var(--cp-border); }
+
+    .mod-so .module-header::before { background: linear-gradient(180deg, var(--so), transparent); }
+    .mod-so .module-num { background: var(--so-bg); color: var(--so); border: 1px solid var(--so-border); }
+    .mod-so .module-owner { background: var(--so-bg); color: var(--so); border: 1px solid var(--so-border); }
+
+    .mod-da .module-header::before { background: linear-gradient(180deg, var(--da), transparent); }
+    .mod-da .module-num { background: var(--da-bg); color: var(--da); border: 1px solid var(--da-border); }
+    .mod-da .module-owner { background: var(--da-bg); color: var(--da); border: 1px solid var(--da-border); }
+
+    .mod-bo .module-header::before { background: linear-gradient(180deg, var(--bo), transparent); }
+    .mod-bo .module-num { background: var(--bo-bg); color: var(--bo); border: 1px solid var(--bo-border); }
+    .mod-bo .module-owner { background: var(--bo-bg); color: var(--bo); border: 1px solid var(--bo-border); }
+
+    .mod-multi .module-header::before { background: linear-gradient(180deg, var(--cp), var(--so)); }
+    .mod-multi .module-num { background: rgba(255,255,255,.05); color: var(--txt); border: 1px solid var(--border); }
+    .mod-multi .module-owner { background: rgba(255,255,255,.05); color: var(--txt2); border: 1px solid var(--border); }
+
+    /* P1 / P2 badges on module title */
+    .prio-badge {
+      display: inline-block;
+      padding: 1px 8px; border-radius: 99px;
+      font-size: 9px; font-weight: 800; letter-spacing: .08em;
+      margin-left: 8px; vertical-align: middle;
+    }
+    .prio-p1 { background: rgba(249,115,22,.15); color: var(--so); border: 1px solid rgba(249,115,22,.35); }
+    .prio-p2 { background: rgba(74,94,120,.2); color: var(--txt3); border: 1px solid rgba(74,94,120,.35); }
+
+    .module-body { padding: 16px 22px 20px; }
+
+    /* Tabs strip (only for module ①) */
+    .tab-strip {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+      margin-bottom: 14px;
+    }
+    .tab-chip {
+      background: linear-gradient(135deg, rgba(59,130,246,.1), rgba(168,85,247,.06));
+      border: 1px solid rgba(59,130,246,.25);
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .tab-chip .tab-code { font-size: 9px; font-weight: 800; color: #93c5fd; letter-spacing: .08em; }
+    .tab-chip .tab-name { font-size: 11px; font-weight: 700; color: var(--txt); margin-top: 2px; }
+    .tab-chip.p1 { border-color: rgba(249,115,22,.3); background: linear-gradient(135deg, rgba(249,115,22,.1), rgba(249,115,22,.03)); }
+    .tab-chip.p1 .tab-code { color: var(--so); }
+
+    /* Level 2 group */
+    .l2-group { margin-bottom: 14px; }
+    .l2-group:last-child { margin-bottom: 0; }
+    .l2-header {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 700;
+      color: var(--txt);
+      padding: 6px 10px;
+      background: rgba(255,255,255,.03);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border-left: 3px solid rgba(255,255,255,.15);
+    }
+    .l2-code {
+      font-size: 10px; font-weight: 800;
+      color: var(--txt3);
+      background: rgba(0,0,0,.3);
+      padding: 2px 6px; border-radius: 4px;
+    }
+
+    /* Level 3 rows table-style */
+    .l3-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11.5px; }
+    .l3-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      vertical-align: middle;
+    }
+    .l3-table tr:last-child td { border-bottom: none; }
+    .l3-name { color: var(--txt); font-weight: 600; white-space: nowrap; }
+    .l3-desc { color: var(--txt2); font-size: 10.5px; padding-left: 4px !important; }
+    .l3-prio {
+      font-size: 9px; font-weight: 800; letter-spacing: .06em;
+      padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+    }
+    .l3-prio.p0 { background: rgba(34,197,94,.12); color: var(--bo); border: 1px solid rgba(34,197,94,.3); }
+    .l3-prio.p1 { background: rgba(249,115,22,.12); color: var(--so); border: 1px solid rgba(249,115,22,.3); }
+    .l3-prio.p2 { background: rgba(74,94,120,.15); color: var(--txt3); border: 1px solid rgba(74,94,120,.3); }
+    .l3-roles { white-space: nowrap; text-align: right; padding-left: 8px !important; }
+
+    /* Role dots */
+    .role-dot {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 5px;
+      font-size: 10px; font-weight: 800; margin-left: 3px;
+      border: 1px solid;
+    }
+    .r-cp.active { background: var(--cp-bg); color: var(--cp); border-color: var(--cp-border); }
+    .r-so.active { background: var(--so-bg); color: var(--so); border-color: var(--so-border); }
+    .r-da.active { background: var(--da-bg); color: var(--da); border-color: var(--da-border); }
+    .r-bo.active { background: var(--bo-bg); color: var(--bo); border-color: var(--bo-border); }
+    .role-dot.dim { background: rgba(255,255,255,.02); color: var(--txt3); border-color: rgba(255,255,255,.05); }
+    .role-dot.none { background: transparent; color: var(--txt3); border-color: rgba(255,255,255,.05); }
+    .role-dot.star { box-shadow: 0 0 0 1px currentColor; font-size: 11px; }
+
+    /* Role header small badges (column head) */
+    .role-col-head {
+      font-size: 9px; font-weight: 800; letter-spacing: .06em;
+      padding: 3px 5px; border-radius: 4px;
+      display: inline-block; min-width: 20px; text-align: center;
+      margin-left: 3px;
+    }
+    .rh-cp { background: var(--cp-bg); color: var(--cp); border: 1px solid var(--cp-border); }
+    .rh-so { background: var(--so-bg); color: var(--so); border: 1px solid var(--so-border); }
+    .rh-da { background: var(--da-bg); color: var(--da); border: 1px solid var(--da-border); }
+    .rh-bo { background: var(--bo-bg); color: var(--bo); border: 1px solid var(--bo-border); }
+
+    /* ─── HEAT MAP ─── */
+    .heatmap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+      overflow-x: auto;
+    }
+    .heatmap-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; color: var(--txt); }
+    .heatmap table { width: 100%; border-collapse: separate; border-spacing: 4px; }
+    .heatmap th {
+      font-size: 11px; font-weight: 800;
+      padding: 10px 12px; text-align: center; border-radius: 8px;
+      background: rgba(255,255,255,.03);
+    }
+    .heatmap th.m-col { text-align: left; background: transparent; color: var(--txt2); }
+    .heatmap th.r-cp { background: var(--cp-bg); color: var(--cp); }
+    .heatmap th.r-so { background: var(--so-bg); color: var(--so); }
+    .heatmap th.r-da { background: var(--da-bg); color: var(--da); }
+    .heatmap th.r-bo { background: var(--bo-bg); color: var(--bo); }
+    .heatmap td {
+      padding: 10px 12px; font-size: 12px; text-align: center; border-radius: 6px;
+    }
+    .heatmap td.m-name {
+      text-align: left; color: var(--txt); font-weight: 700;
+      padding: 10px 14px; background: rgba(255,255,255,.02);
+    }
+    .hm-star { background: rgba(59,130,246,.15); color: #93c5fd; font-weight: 800; }
+    .hm-hi   { background: rgba(59,130,246,.06); color: #60a5fa; }
+    .hm-lo   { background: rgba(255,255,255,.03); color: var(--txt2); }
+    .hm-none { background: transparent; color: var(--txt3); }
+
+    /* ─── ARENA CARDS ─── */
+    .arena-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+      margin-bottom: 40px;
+    }
+    .arena-card { border-radius: 14px; padding: 18px 18px 20px; border: 1px solid; }
+    .arena-card.cp { background: linear-gradient(135deg, rgba(168,85,247,.08), rgba(168,85,247,.02)); border-color: var(--cp-border); }
+    .arena-card.so { background: linear-gradient(135deg, rgba(249,115,22,.08), rgba(249,115,22,.02)); border-color: var(--so-border); }
+    .arena-card.da { background: linear-gradient(135deg, rgba(59,130,246,.08), rgba(59,130,246,.02)); border-color: var(--da-border); }
+    .arena-card.bo { background: linear-gradient(135deg, rgba(34,197,94,.08), rgba(34,197,94,.02)); border-color: var(--bo-border); }
+    .arena-card h4 { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+    .arena-card.cp h4 { color: var(--cp); }
+    .arena-card.so h4 { color: var(--so); }
+    .arena-card.da h4 { color: var(--da); }
+    .arena-card.bo h4 { color: var(--bo); }
+    .arena-card .arena-role-hint { font-size: 10.5px; color: var(--txt3); margin-bottom: 12px; }
+    .arena-list { list-style: none; }
+    .arena-list li {
+      font-size: 11.5px; color: var(--txt2); line-height: 1.7;
+      padding-left: 14px; position: relative;
+    }
+    .arena-list li::before {
+      content: '▸'; position: absolute; left: 0;
+      color: var(--txt3); font-size: 10px;
+    }
+
+    /* ─── CONSTRAINTS / RULES ─── */
+    .rules-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+      margin-bottom: 40px;
+    }
+    .rule-card {
+      padding: 18px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(250,204,21,.05), rgba(250,204,21,.02));
+      border: 1px solid rgba(250,204,21,.25);
+    }
+    .rule-card .rule-code {
+      display: inline-block;
+      font-size: 10px; font-weight: 800;
+      padding: 2px 8px; border-radius: 4px;
+      background: rgba(250,204,21,.12); color: var(--m-yellow);
+      margin-bottom: 8px;
+    }
+    .rule-card h4 { font-size: 13px; font-weight: 800; color: var(--txt); margin-bottom: 6px; line-height: 1.45; }
+    .rule-card .rule-where {
+      font-size: 11px; color: var(--txt2); line-height: 1.55;
+    }
+    .rule-card .rule-where b { color: #fde68a; }
+
+    .divider { height: 1px; background: var(--border); margin: 48px 0; }
+
+    /* ─── FOOTER ─── */
+    .footer { text-align: center; padding: 28px 0; border-top: 1px solid var(--border); }
+    .footer p { font-size: 11px; color: var(--txt3); }
+  </style>
+</head>
+<body>
+
+<!-- ═════════ PAGE HEADER ═════════ -->
+<div class="page-header">
+  <div class="badge">📋 Menu Architecture · v1.0 · 2026-04-22 · FLAGSHIP STORE FOCUSED</div>
+  <h1>亚马逊旗舰店子系统<br/>菜单架构 v1.0</h1>
+  <p><strong style="color:#93c5fd">8 大一级模块 · 28 个二级模块 · 60+ 三级菜单</strong>，每条菜单标注 CP / SO / DA / BO 四角色使用等级</p>
+</div>
+
+<!-- ═════════ BOUNDARY CALLOUT ═════════ -->
+<div class="boundary">
+  <div class="boundary-label">◆ 边界宣言 · Boundary Declaration</div>
+  <div class="boundary-text">
+    本子系统<b>只做</b> Amazon Brand Store 引流与转化的多维分析、Tag 与联盟的全生命周期管理；<br/>
+    <b>不做</b>广告投放执行（归 amazon-ads-system）、<b>不做</b>订单履约（归 amazon-sales-system）、<b>不做</b>品牌注册与 Listing 发布。
+  </div>
+</div>
+
+<!-- ═════════ ROLE LEGEND ═════════ -->
+<div class="sec-header">
+  <div class="sec-num">1</div>
+  <div>
+    <div class="sec-title">四大角色定义</div>
+    <div class="sec-desc">基于旗舰店推广与运营职责，划分为 4 个核心岗位</div>
+  </div>
+</div>
+
+<div class="role-legend">
+  <div class="role-card cp">
+    <span class="role-code">CP</span>
+    <h4>🟣 渠道推广</h4>
+    <div class="role-sub">Channel Promotion · 引流归因主责</div>
+    <div class="role-main">Tag 自助创建 · 联盟管理 · 看板分析 · 命名规范 · 复盘资产沉淀</div>
+  </div>
+  <div class="role-card so">
+    <span class="role-code">SO</span>
+    <h4>🟠 旗舰店运营</h4>
+    <div class="role-sub">Store Ops · 业务树管家</div>
+    <div class="role-main">站点/场景维护 · 页面-场景映射 · 重点品标记 · 目标录入</div>
+  </div>
+  <div class="role-card da">
+    <span class="role-code">DA</span>
+    <h4>🔵 数据分析师</h4>
+    <div class="role-sub">Data Analyst · 看板看门人</div>
+    <div class="role-main">7 大看板 · 同比环比 · 指标口径维护 · 自定义透视</div>
+  </div>
+  <div class="role-card bo">
+    <span class="role-code">BO</span>
+    <h4>🟢 业务负责人</h4>
+    <div class="role-sub">Business Owner · 汇报视角</div>
+    <div class="role-main">站点总览 · 目标设定与达成 · 跨店占比 · 季度/年度复盘</div>
+  </div>
+</div>
+
+<!-- ═════════ USAGE LEGEND ═════════ -->
+<div class="usage-legend">
+  <div class="usage-item"><span class="usage-mark" style="color:#93c5fd">⭐</span> 主责 · 该角色的核心工作台</div>
+  <div class="usage-item"><span class="usage-mark" style="color:#93c5fd">●</span> 高频使用（每日/每周）</div>
+  <div class="usage-item"><span class="usage-mark" style="color:var(--txt2)">○</span> 协同查看（每周/每月）</div>
+  <div class="usage-item"><span class="usage-mark" style="color:var(--txt3)">—</span> 不直接使用</div>
+  <div class="usage-item"><span class="l3-prio p0">P0</span> MVP 首期</div>
+  <div class="usage-item"><span class="l3-prio p1">P1</span> 二期</div>
+</div>
+
+<!-- ═════════ 8 MODULES ═════════ -->
+<div class="sec-header">
+  <div class="sec-num" style="background:linear-gradient(135deg,var(--so),var(--da))">2</div>
+  <div>
+    <div class="sec-title">8 大一级模块 × 三级菜单 × 角色矩阵</div>
+    <div class="sec-desc">每条菜单右侧按 CP / SO / DA / BO 顺序标注使用等级；P0/P1 指 MVP 切片优先级</div>
+  </div>
+</div>
+
+<div class="module-grid">
+
+  <!-- ═════ MODULE 1 · 旗舰店看板（整个系统的门面，跨 2 列） ═════ -->
+  <div class="module-card mod-da full">
+    <div class="module-header">
+      <div class="module-num">①</div>
+      <div class="module-title-group">
+        <div class="module-title">📊 旗舰店看板 · Flagship Store Insights</div>
+        <div class="module-sub">承载 7 大看板 Tab；统一筛选器：站点（单选/多选/区域聚合）+ 周/月/季/年 + 同比 + 环比</div>
+      </div>
+      <div class="module-owner">DA 主责</div>
+    </div>
+    <div class="module-body">
+
+      <!-- 7 TAB STRIP -->
+      <div class="tab-strip">
+        <div class="tab-chip"><div class="tab-code">T1</div><div class="tab-name">站点总览</div></div>
+        <div class="tab-chip"><div class="tab-code">T2</div><div class="tab-name">场景维度</div></div>
+        <div class="tab-chip"><div class="tab-code">T3</div><div class="tab-name">场景-页面</div></div>
+        <div class="tab-chip"><div class="tab-code">T4</div><div class="tab-name">流量组成</div></div>
+        <div class="tab-chip"><div class="tab-code">T5</div><div class="tab-name">品线维度</div></div>
+        <div class="tab-chip"><div class="tab-code">T6</div><div class="tab-name">重点品/Top SKU</div></div>
+        <div class="tab-chip p1"><div class="tab-code">T7 · P1</div><div class="tab-name">旗舰店占比</div></div>
+      </div>
+
+      <!-- role column headers -->
+      <div style="display:flex;justify-content:flex-end;gap:3px;margin-bottom:6px;font-size:9px;color:var(--txt3);">
+        <span class="role-col-head rh-cp">CP</span>
+        <span class="role-col-head rh-so">SO</span>
+        <span class="role-col-head rh-da">DA</span>
+        <span class="role-col-head rh-bo">BO</span>
+      </div>
+
+      <!-- T1 -->
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">T1</span> 站点总览 (Site Overview)</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">核心指标卡</td><td class="l3-desc">Sales/Orders/Visitors/CVR/ASP/UPT/NTS% 顶置 + 同环比</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">漏斗指标明细</td><td class="l3-desc">按业务漏斗顺序排列的全量字段表</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">站点占比图</td><td class="l3-desc">多站点选择时显示总量 + 各站点占比</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+        </table>
+      </div>
+
+      <!-- T2 -->
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">T2</span> 场景维度 (Scene Dimension)</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">场景核心数据</td><td class="l3-desc">6 大场景（公共/居家/户外/观影/新潮/季节）月度对比</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">场景下钻趋势</td><td class="l3-desc">单场景下钻到月度趋势线（季度复盘视角）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">活动场景视图</td><td class="l3-desc">大促等活动型场景独立分析</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active">●</span></td></tr>
+        </table>
+      </div>
+
+      <!-- T3 -->
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">T3</span> 场景-页面 (Scene → Page)</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">场景下页面清单</td><td class="l3-desc">选定场景后下钻其下所有页面（含历史，不删除）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active">●</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">页面同比环比</td><td class="l3-desc">单页面跨时间对比（含已下线页面）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active">●</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">映射快照视图</td><td class="l3-desc">按月固化的"页面↔场景"快照（解决迁移问题）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active">●</span><span class="role-dot none">—</span></td></tr>
+        </table>
+      </div>
+
+      <!-- T4 -->
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">T4</span> 流量组成 (Traffic Composition)</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">渠道三分桶</td><td class="l3-desc">每页面拆 SB / Organic / Other（含占比 + 同比）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">SB 渠道明细</td><td class="l3-desc">SB 广告维度核心数据（消费 amazon-ads 数据）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">Other 渠道明细</td><td class="l3-desc">站外（Tag/联盟）回流明细</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">Organic 自然流量</td><td class="l3-desc">自然搜索 / 直接访问拆分</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+      <!-- T5 -->
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">T5</span> 品线维度 (Product Line)</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">5 大品线核心数据</td><td class="l3-desc">居家 / 户外 / 季节 / 观影 / 新潮（按 SKU 归类）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">品线下 SKU 明细</td><td class="l3-desc">品线下钻到 SKU 级别</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active star">⭐</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+      <!-- T6 -->
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">T6</span> 重点品 & Top SKU (Hero SKU)</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">重点品看板</td><td class="l3-desc">SO 标记的 Hero SKU 集合（同年环比）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">Top SKU 排行</td><td class="l3-desc">默认按月销额前 20，可改默认维度</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">SKU 多选搜索</td><td class="l3-desc">支持一次输入多个 SKU 对比</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+      <!-- T7 -->
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">T7</span> 旗舰店占比 <span class="prio-badge prio-p1">P1</span></div>
+        <table class="l3-table">
+          <tr><td class="l3-name">旗舰店 vs 全店</td><td class="l3-desc">旗舰店 SKU 出单 / 全店 SKU 出单 = 占比</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">跨子系统数据健康</td><td class="l3-desc">ASIN-SKU 主数据 / 销售明细就绪状态</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════ MODULE 2 · Tag 中心 ═════ -->
+  <div class="module-card mod-cp">
+    <div class="module-header">
+      <div class="module-num">②</div>
+      <div class="module-title-group">
+        <div class="module-title">🏷️ Tag 中心 · Attribution Tag Center</div>
+        <div class="module-sub">Tag 自助创建 + 同比补全 + 命名规范治理；解决业务方"创建需求大量 + 命名执行不规范"两大痛点</div>
+      </div>
+      <div class="module-owner">CP 主责</div>
+    </div>
+    <div class="module-body">
+      <div style="display:flex;justify-content:flex-end;gap:3px;margin-bottom:6px;font-size:9px;color:var(--txt3);">
+        <span class="role-col-head rh-cp">CP</span><span class="role-col-head rh-so">SO</span><span class="role-col-head rh-da">DA</span><span class="role-col-head rh-bo">BO</span>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">2.1</span> Tag 自助创建</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">创建向导</td><td class="l3-desc">选品牌→站点→SKU→渠道→日期，系统自动生成 Tag/UTM</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">批量创建</td><td class="l3-desc">模板批量创建（同 SKU 多渠道、同渠道多 SKU）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot none">—</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">命名预览与校验</td><td class="l3-desc">实时显示规范字符串、冲突检测</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot none">—</span><span class="role-dot none">—</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">2.2</span> Tag 列表</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">全量 Tag 看板</td><td class="l3-desc">我创建的 / 全部 / 按渠道筛选</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active">●</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">状态管理</td><td class="l3-desc">启用 / 停用 / 归档</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">Attribution 同步</td><td class="l3-desc">跳转亚马逊 Attribution 后台、同步状态</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot none">—</span><span class="role-dot none">—</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">2.3</span> Tag 数据看板</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">同比补全看板</td><td class="l3-desc">Tag 同比/环比数据</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">渠道维度排序</td><td class="l3-desc">Click / View / Sales 大→小或小→大切换</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">KOL/SNS/Paid 拆分</td><td class="l3-desc">按渠道类型拆分（与 Tag 数据表对齐）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">2.4</span> 命名规范治理</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">规范字典</td><td class="l3-desc">当前命名规范的版本化管理</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">历史脏 Tag 治理</td><td class="l3-desc">不符合规范的历史 Tag 识别与建议改名</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">违规告警</td><td class="l3-desc">发现非系统创建的 Tag 时告警</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════ MODULE 3 · 联盟中心 ═════ -->
+  <div class="module-card mod-cp">
+    <div class="module-header">
+      <div class="module-num">③</div>
+      <div class="module-title-group">
+        <div class="module-title">🤝 联盟中心 · Affiliate Center</div>
+        <div class="module-sub">多平台 CSV/Excel 导入 + ASIN→SKU 映射 + 佣金自动计算；当前 2 家 → 26 年新增 1 家（导入器插件化）</div>
+      </div>
+      <div class="module-owner">CP 主责</div>
+    </div>
+    <div class="module-body">
+      <div style="display:flex;justify-content:flex-end;gap:3px;margin-bottom:6px;font-size:9px;color:var(--txt3);">
+        <span class="role-col-head rh-cp">CP</span><span class="role-col-head rh-so">SO</span><span class="role-col-head rh-da">DA</span><span class="role-col-head rh-bo">BO</span>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">3.1</span> 平台管理</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">平台清单</td><td class="l3-desc">已对接联盟平台（含字段映射版本）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">新增平台向导</td><td class="l3-desc">配置字段映射、佣金规则、对接负责人</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot none">—</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">佣金比例配置</td><td class="l3-desc">平台 × 站点 × 品类 × SKU 多级佣金比例</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot r-bo active">●</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">3.2</span> 数据导入工作台</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">CSV/Excel 上传</td><td class="l3-desc">选平台 → 上传源文件 → 按映射解析</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot none">—</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">解析预览与确认</td><td class="l3-desc">解析结果预览、ASIN→SKU 映射检测</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">异常数据修正</td><td class="l3-desc">缺 SKU、币种异常、重复行人工修正</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">导入历史</td><td class="l3-desc">历次导入记录、可回滚</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">3.3</span> 联盟数据看板</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">全局筛选器视图</td><td class="l3-desc">平台单选 / 全部聚合 + 站点筛选</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">核心指标卡</td><td class="l3-desc">Sales / Qty / 佣金 / ROAS / 占比</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">单产品明细表</td><td class="l3-desc">ASIN / SKU / 销量 / 销额 / 佣金比 / 佣金 / ROAS</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot r-da active">●</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">3.4</span> 预算与目标</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">预算花费进度</td><td class="l3-desc">当前花费 vs 预算（双色进度条）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">销售额目标进度</td><td class="l3-desc">当前销售额 vs 目标</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">平台间对比</td><td class="l3-desc">多平台 ROAS / 佣金率对比</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════ MODULE 4 · 直播中心 (P1) ═════ -->
+  <div class="module-card mod-cp">
+    <div class="module-header">
+      <div class="module-num">④</div>
+      <div class="module-title-group">
+        <div class="module-title">🎬 直播中心 · Live Center <span class="prio-badge prio-p1">P1</span></div>
+        <div class="module-sub">亚马逊官方直播档期 + 红人档案 + 播后数据；依赖 Live API 可行性评估，整模块为二期</div>
+      </div>
+      <div class="module-owner">CP 主责</div>
+    </div>
+    <div class="module-body">
+      <div style="display:flex;justify-content:flex-end;gap:3px;margin-bottom:6px;font-size:9px;color:var(--txt3);">
+        <span class="role-col-head rh-cp">CP</span><span class="role-col-head rh-so">SO</span><span class="role-col-head rh-da">DA</span><span class="role-col-head rh-bo">BO</span>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">4.1</span> 直播档期</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">档期日历</td><td class="l3-desc">已确定 / 待确定的直播排期</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">红人/主播档案</td><td class="l3-desc">亚马逊官方对接红人信息库</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot none">—</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">直播-SKU 绑定</td><td class="l3-desc">每场直播主推 SKU 与场景归属</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active">●</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">4.2</span> 直播数据看板</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">直播效果数据</td><td class="l3-desc">观看人数 / 互动 / 加购 / 成交（API 接入）</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">红人 ROI 排行</td><td class="l3-desc">按红人维度的成本 / 产出对比</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">直播复盘归档</td><td class="l3-desc">单场直播复盘文档归档</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active">●</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════ MODULE 5 · 站点与场景 ═════ -->
+  <div class="module-card mod-so">
+    <div class="module-header">
+      <div class="module-num">⑤</div>
+      <div class="module-title-group">
+        <div class="module-title">🗂️ 站点与场景 · Site & Scene Hub</div>
+        <div class="module-sub">站点 → 场景 → 页面 3 层业务树的维护台；所有看板下钻路径依赖此处，含映射版本快照</div>
+      </div>
+      <div class="module-owner">SO 主责</div>
+    </div>
+    <div class="module-body">
+      <div style="display:flex;justify-content:flex-end;gap:3px;margin-bottom:6px;font-size:9px;color:var(--txt3);">
+        <span class="role-col-head rh-cp">CP</span><span class="role-col-head rh-so">SO</span><span class="role-col-head rh-da">DA</span><span class="role-col-head rh-bo">BO</span>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">5.1</span> 站点配置</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">7 站点清单</td><td class="l3-desc">US/CA（北美）+ DE/UK/ES/IT/FR（欧洲）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">区域分组</td><td class="l3-desc">北美 / 欧洲 区域配置（决定聚合视图）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active">●</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">5.2</span> 场景字典</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">基础场景</td><td class="l3-desc">公共 / 居家 / 户外 / 观影 / 新潮 / 季节</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">活动场景</td><td class="l3-desc">大促 / 节日 / 联名等活动型场景（可新增）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">场景下线归档</td><td class="l3-desc">过期场景归档（不删除，保留历史数据）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">5.3</span> 页面-场景映射</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">页面清单</td><td class="l3-desc">全 7 站点 Brand Store 页面（含历史，不删除）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">映射维护</td><td class="l3-desc">单页面绑定唯一场景；批量绑定向导</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot none">—</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">新页面捕获</td><td class="l3-desc">检测到亚马逊后台新增页面 → 待映射告警</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot none">—</span><span class="role-dot none">—</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">5.4</span> 映射版本快照</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">月度快照</td><td class="l3-desc">每月固化"页面↔场景"映射版本</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot none">—</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active">●</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">快照变更日志</td><td class="l3-desc">谁、何时、为何变更映射</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active">●</span><span class="role-dot dim">○</span></td></tr>
+          <tr><td class="l3-name">历史归属修复</td><td class="l3-desc">已上线场景下页面归属修复（含影响评估）</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active">●</span><span class="role-dot none">—</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════ MODULE 6 · 重点品与目标 ═════ -->
+  <div class="module-card mod-multi">
+    <div class="module-header">
+      <div class="module-num">⑥</div>
+      <div class="module-title-group">
+        <div class="module-title">⭐ 重点品与目标 · Hero SKU & Targets</div>
+        <div class="module-sub">Hero SKU 标记（SO 主）+ 目标 4 大 KPI 录入与达成追踪（BO 主）</div>
+      </div>
+      <div class="module-owner">SO + BO 共管</div>
+    </div>
+    <div class="module-body">
+      <div style="display:flex;justify-content:flex-end;gap:3px;margin-bottom:6px;font-size:9px;color:var(--txt3);">
+        <span class="role-col-head rh-cp">CP</span><span class="role-col-head rh-so">SO</span><span class="role-col-head rh-da">DA</span><span class="role-col-head rh-bo">BO</span>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">6.1</span> 重点品标记</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">Hero SKU 列表</td><td class="l3-desc">按场景 / 品线 / 站点的重点品集合</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-bo active">●</span></td></tr>
+          <tr><td class="l3-name">标记与下线</td><td class="l3-desc">SO 手动标记 / 下线某 SKU 为"重点品"</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot none">—</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">历史重点品归档</td><td class="l3-desc">退市重点品的归档与可追溯</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">6.2</span> 目标管理</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">目标设置</td><td class="l3-desc">站点 × 维度 × 周期（月/季/年）目标录入</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">4 大核心 KPI</td><td class="l3-desc">Sales 60% / CTR 20% / ADT 15% / UPT 5% 权重</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">目标版本管理</td><td class="l3-desc">目标修订记录（避免改后无据可查）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot dim">○</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">6.3</span> 达成追踪</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">达成率看板</td><td class="l3-desc">月 / 季 / 年达成率实时（与①看板打通）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">差距分析</td><td class="l3-desc">按站点 / 场景 / 品线分析未达成原因</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">达成预警</td><td class="l3-desc">达成率不足阈值自动告警</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════ MODULE 7 · 复盘与资产 ═════ -->
+  <div class="module-card mod-cp">
+    <div class="module-header">
+      <div class="module-num">⑦</div>
+      <div class="module-title-group">
+        <div class="module-title">📔 复盘与资产 · Retro & Assets</div>
+        <div class="module-sub">周/月报自动化 + 阶段性复盘归档 + 命名规范 + SOP；替代当前 Excel + DeepSeek 手工流</div>
+      </div>
+      <div class="module-owner">CP + BO 共管</div>
+    </div>
+    <div class="module-body">
+      <div style="display:flex;justify-content:flex-end;gap:3px;margin-bottom:6px;font-size:9px;color:var(--txt3);">
+        <span class="role-col-head rh-cp">CP</span><span class="role-col-head rh-so">SO</span><span class="role-col-head rh-da">DA</span><span class="role-col-head rh-bo">BO</span>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">7.1</span> 周/月报模板</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">模板管理</td><td class="l3-desc">周报 / 月报 / 大促复盘 模板维护</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">一键生成</td><td class="l3-desc">选时间窗口 → 自动抓看板数据生成 md/docx</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">历史报表归档</td><td class="l3-desc">历次周/月报版本管理</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active">●</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">7.2</span> 阶段性复盘</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">大促复盘</td><td class="l3-desc">Prime Day / BFCM / 黑五等独立复盘</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">季度/年度复盘</td><td class="l3-desc">按季度 / 年度的旗舰店复盘归档</td><td><span class="l3-prio p1">P1</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active">●</span><span class="role-dot r-bo active star">⭐</span></td></tr>
+          <tr><td class="l3-name">复盘行动项</td><td class="l3-desc">行动项与负责人挂接（待办闭环）</td><td><span class="l3-prio p2">P2</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot r-so active">●</span><span class="role-dot dim">○</span><span class="role-dot r-bo active">●</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">7.3</span> 命名规范资产</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">Tag 命名规范</td><td class="l3-desc">Tag 命名规范的版本化资产</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">联盟命名规范</td><td class="l3-desc">联盟字段映射的版本化资产</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot none">—</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">页面命名规范</td><td class="l3-desc">Brand Store 页面命名建议</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+        </table>
+      </div>
+
+      <div class="l2-group">
+        <div class="l2-header"><span class="l2-code">7.4</span> SOP 与方法论</div>
+        <table class="l3-table">
+          <tr><td class="l3-name">Attribution 创建 SOP</td><td class="l3-desc">含截图的标准操作流程</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">联盟导入 SOP</td><td class="l3-desc">平台 × 字段映射 × 异常处置 SOP</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active star">⭐</span><span class="role-dot dim">○</span><span class="role-dot dim">○</span><span class="role-dot none">—</span></td></tr>
+          <tr><td class="l3-name">看板使用指南</td><td class="l3-desc">给业务方的看板使用 / 字段口径说明</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles"><span class="role-dot r-cp active">●</span><span class="role-dot r-so active">●</span><span class="role-dot r-da active star">⭐</span><span class="role-dot dim">○</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════ MODULE 8 · 系统设置 ═════ -->
+  <div class="module-card mod-multi">
+    <div class="module-header">
+      <div class="module-num">⑧</div>
+      <div class="module-title-group">
+        <div class="module-title">⚙️ 系统设置 · System Settings</div>
+        <div class="module-sub">管理员功能：字典 / 口径 / 集成 / 权限 / 审计；所有横切支撑在此</div>
+      </div>
+      <div class="module-owner">系统管理员</div>
+    </div>
+    <div class="module-body">
+      <table class="l3-table">
+        <tr><td class="l3-name">8.1 组织权限</td><td class="l3-desc">用户管理 / 角色权限矩阵 / 站点权限范围</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles" style="color:var(--txt3);font-size:10.5px;">系统管理员</td></tr>
+        <tr><td class="l3-name">8.2 指标定义</td><td class="l3-desc">指标字典（Sales/CVR/ASP/UPT/NTS%）+ 计算口径</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles" style="color:var(--txt3);font-size:10.5px;">管理员 + DA</td></tr>
+        <tr><td class="l3-name">8.3 渠道分桶规则</td><td class="l3-desc">SB / Organic / Other 的渠道枚举与归属规则</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles" style="color:var(--txt3);font-size:10.5px;">管理员 + CP</td></tr>
+        <tr><td class="l3-name">8.4 命名规范字典</td><td class="l3-desc">Tag / 联盟 / 页面 命名规范可写版本</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles" style="color:var(--txt3);font-size:10.5px;">管理员 + CP</td></tr>
+        <tr><td class="l3-name">8.5 联盟字段映射</td><td class="l3-desc">各联盟平台 → 统一模型的字段映射（插件化）</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles" style="color:var(--txt3);font-size:10.5px;">管理员 + CP</td></tr>
+        <tr><td class="l3-name">8.6 集成中心</td><td class="l3-desc">SP-API / Attribution / Live + 相邻子系统接口</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles" style="color:var(--txt3);font-size:10.5px;">系统管理员</td></tr>
+        <tr><td class="l3-name">8.7 审计日志</td><td class="l3-desc">关键操作（重点品、映射、目标）审计记录</td><td><span class="l3-prio p0">P0</span></td><td class="l3-roles" style="color:var(--txt3);font-size:10.5px;">管理员 + BO</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═════════ HEATMAP ═════════ -->
+<div class="sec-header">
+  <div class="sec-num" style="background:linear-gradient(135deg,var(--cp),var(--bo))">3</div>
+  <div>
+    <div class="sec-title">四角色菜单使用热度总览</div>
+    <div class="sec-desc">⭐ 主责 · ● 高频 · ○ 协同 · — 不用</div>
+  </div>
+</div>
+
+<div class="heatmap">
+  <div class="heatmap-title">8 大模块 × 4 大角色 使用热度矩阵</div>
+  <table>
+    <thead>
+      <tr>
+        <th class="m-col">一级模块</th>
+        <th class="r-cp">🟣 CP 渠道推广</th>
+        <th class="r-so">🟠 SO 旗舰店运营</th>
+        <th class="r-da">🔵 DA 数据分析师</th>
+        <th class="r-bo">🟢 BO 业务负责人</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="m-name">① 旗舰店看板</td>
+        <td class="hm-hi">● 高频</td>
+        <td class="hm-hi">● 高频(T3/T5/T6)</td>
+        <td class="hm-star">⭐ 主责(全 7 Tab)</td>
+        <td class="hm-star">⭐ 主责(T1/T2/T7)</td>
+      </tr>
+      <tr>
+        <td class="m-name">② Tag 中心</td>
+        <td class="hm-star">⭐ 独占主阵地</td>
+        <td class="hm-lo">○ 协同</td>
+        <td class="hm-hi">● 数据看板</td>
+        <td class="hm-lo">○ 协同</td>
+      </tr>
+      <tr>
+        <td class="m-name">③ 联盟中心</td>
+        <td class="hm-star">⭐ 独占主阵地</td>
+        <td class="hm-none">—</td>
+        <td class="hm-hi">● 数据看板</td>
+        <td class="hm-star">⭐ 主责(预算/目标)</td>
+      </tr>
+      <tr>
+        <td class="m-name">④ 直播中心 (P1)</td>
+        <td class="hm-star">⭐ 主责</td>
+        <td class="hm-lo">○ 协同</td>
+        <td class="hm-hi">● 数据协同</td>
+        <td class="hm-lo">○ 协同</td>
+      </tr>
+      <tr>
+        <td class="m-name">⑤ 站点与场景</td>
+        <td class="hm-lo">○ 协同</td>
+        <td class="hm-star">⭐ 独占主阵地</td>
+        <td class="hm-lo">○ 协同</td>
+        <td class="hm-lo">○ 协同</td>
+      </tr>
+      <tr>
+        <td class="m-name">⑥ 重点品与目标</td>
+        <td class="hm-hi">● 高频</td>
+        <td class="hm-star">⭐ 主阵地(重点品)</td>
+        <td class="hm-hi">● 达成追踪</td>
+        <td class="hm-star">⭐ 主责(目标)</td>
+      </tr>
+      <tr>
+        <td class="m-name">⑦ 复盘与资产</td>
+        <td class="hm-star">⭐ 主阵地(SOP)</td>
+        <td class="hm-hi">● 高频</td>
+        <td class="hm-hi">● 看板指南</td>
+        <td class="hm-star">⭐ 主责(复盘)</td>
+      </tr>
+      <tr>
+        <td class="m-name">⑧ 系统设置</td>
+        <td class="hm-lo">○ 字典/规则</td>
+        <td class="hm-none">—</td>
+        <td class="hm-lo">○ 指标定义</td>
+        <td class="hm-lo">○ 审计</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═════════ ARENA CARDS ═════════ -->
+<div class="sec-header">
+  <div class="sec-num" style="background:linear-gradient(135deg,var(--bo),var(--so))">4</div>
+  <div>
+    <div class="sec-title">各角色「独占主阵地」</div>
+    <div class="sec-desc">系统登录后可直接跳转到各角色主阵地</div>
+  </div>
+</div>
+
+<div class="arena-grid">
+  <div class="arena-card cp">
+    <h4>🟣 渠道推广 (CP)</h4>
+    <div class="arena-role-hint">Channel Promotion · 引流归因主责</div>
+    <ul class="arena-list">
+      <li>② Tag 中心 — 自助创建 + 数据看板</li>
+      <li>③ 联盟中心 — 导入 + 佣金 + ROAS</li>
+      <li>⑦ 复盘与资产 — SOP + 命名规范</li>
+      <li>① 看板 — 流量组成 / 场景维度</li>
+      <li>④ 直播中心 — 直播排期（P1）</li>
+    </ul>
+  </div>
+  <div class="arena-card so">
+    <h4>🟠 旗舰店运营 (SO)</h4>
+    <div class="arena-role-hint">Store Ops · 业务树管家</div>
+    <ul class="arena-list">
+      <li>⑤ 站点与场景 — 全模块</li>
+      <li>⑥ 重点品与目标 — 重点品标记 + 目标录入</li>
+      <li>① 看板 — 场景-页面 / 品线</li>
+      <li>⑦ 复盘与资产 — 阶段性复盘</li>
+    </ul>
+  </div>
+  <div class="arena-card da">
+    <h4>🔵 数据分析师 (DA)</h4>
+    <div class="arena-role-hint">Data Analyst · 看板看门人</div>
+    <ul class="arena-list">
+      <li>① 旗舰店看板 — 全 7 Tab</li>
+      <li>⑧ 指标定义 — 口径维护</li>
+      <li>⑥ 达成追踪 — 达成率看板</li>
+      <li>② Tag 中心 — 同比补全看板</li>
+      <li>③ 联盟中心 — 核心指标卡</li>
+    </ul>
+  </div>
+  <div class="arena-card bo">
+    <h4>🟢 业务负责人 (BO)</h4>
+    <div class="arena-role-hint">Business Owner · 汇报视角</div>
+    <ul class="arena-list">
+      <li>① 看板 — T1 站点总览 + T7 占比</li>
+      <li>⑥ 目标管理 — 目标 + 达成追踪</li>
+      <li>③ 联盟中心 — 预算 + 目标进度</li>
+      <li>⑦ 复盘与资产 — 季度/年度复盘</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═════════ KEY CONSTRAINTS ═════════ -->
+<div class="sec-header">
+  <div class="sec-num" style="background:linear-gradient(135deg,var(--m-yellow),var(--m-amber))">5</div>
+  <div>
+    <div class="sec-title">6 项关键约束（写入菜单层）</div>
+    <div class="sec-desc">上线后必须由系统强制保证，防止回到 Excel 时代的脏数据混乱</div>
+  </div>
+</div>
+
+<div class="rules-grid">
+  <div class="rule-card">
+    <span class="rule-code">K1 · TAG 强约束</span>
+    <h4>Tag 创建即按规范，禁止系统外起名</h4>
+    <div class="rule-where">落在：<b>② 2.1 Tag 创建向导</b><br/>守护者：CP + 系统强约束</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-code">K2 · 映射快照</span>
+    <h4>页面-场景映射仅 SO 维护，每月固化版本快照</h4>
+    <div class="rule-where">落在：<b>⑤ 5.3 + 5.4</b><br/>守护者：SO + 系统强约束</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-code">K3 · 比率重算</span>
+    <h4>比率指标（CVR/ASP/UPT/NTS%）必须 sum/sum 重算</h4>
+    <div class="rule-where">落在：<b>⑧ 8.2 + ① 全 7 Tab</b><br/>守护者：DA + 后端计算服务</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-code">K4 · 联盟映射</span>
+    <h4>联盟新增平台必须先配字段映射</h4>
+    <div class="rule-where">落在：<b>⑧ 8.5 + ③ 3.1</b><br/>守护者：CP + 系统强约束</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-code">K5 · 审计日志</span>
+    <h4>重点品 / 目标变更留审计日志</h4>
+    <div class="rule-where">落在：<b>⑧ 8.7</b><br/>守护者：BO + 系统强约束</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-code">K6 · 渠道分桶</span>
+    <h4>SB / Organic / Other 分桶规则统一字典</h4>
+    <div class="rule-where">落在：<b>⑧ 8.3</b><br/>守护者：CP</div>
+  </div>
+</div>
+
+<!-- ═════════ KEY INSIGHTS ═════════ -->
+<div style="padding:22px 26px;border-radius:16px;background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(168,85,247,.06));border:1px solid rgba(59,130,246,.2);margin-bottom:40px;">
+  <div style="font-size:14px;font-weight:800;color:var(--da);margin-bottom:14px;">💡 v1.0 菜单设计的四大核心洞察</div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;">
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#93c5fd;margin-bottom:6px;">1. 每角色都有"独占主阵地"</div>
+      <div style="font-size:11px;color:var(--txt2);line-height:1.6;">
+        CP → Tag 中心 + 联盟中心 / SO → 站点与场景 / DA → 旗舰店看板 / BO → 目标管理 + 复盘报告。登录后直接跳主阵地。
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#c084fc;margin-bottom:6px;">2. 7 大看板用 Tab 方式组合</div>
+      <div style="font-size:11px;color:var(--txt2);line-height:1.6;">
+        ① 模块内 7 Tab 满足"既要聚合看，又要单独看"；统一筛选器与同比/环比贯穿所有 Tab，支持统一分析口径。
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#fde68a;margin-bottom:6px;">3. 强约束写入菜单层</div>
+      <div style="font-size:11px;color:var(--txt2);line-height:1.6;">
+        6 项 K1–K6 从设计阶段就确保 Tag 规范、映射快照、指标重算、审计等系统强制，彻底告别 Excel + DeepSeek 手工流。
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#86efac;margin-bottom:6px;">4. 结构可直接用于 RBAC</div>
+      <div style="font-size:11px;color:var(--txt2);line-height:1.6;">
+        ⭐/● = 读写，○ = 只读，— = 不可见。四色角色矩阵可直接映射为权限配置表，驱动 RBAC 实现。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>亚马逊旗舰店子系统 · 菜单架构 v1.0 · 2026-04-22</p>
+  <p style="margin-top:4px;">8 大一级模块 · 28 个二级模块 · 60+ 三级菜单 · 4 个角色矩阵 · 6 项关键约束</p>
+  <p style="margin-top:10px;">用于旗舰店子系统菜单分层与角色权限结构设计。</p>
+  <p style="margin-top:14px;font-size:11px;color:#64748b;">
+    作者：<span style="color:#60a5fa;font-weight:700;">@beynawoo-code</span>
+  </p>
+</div>
+
+</body>
+</html>

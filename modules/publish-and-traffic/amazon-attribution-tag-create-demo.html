@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旗舰店 ERP · Amazon Attribution Tag 创建（Demo）</title>
+  <script src="./amazon-attribution-tag-wizard-data.js"></script>
+  <script src="./amazon-attribution-taxonomy-config-store.js"></script>
+  <script>window.TaxonomyConfigStore?.applyToWizard();</script>
+  <script src="./amazon-attribution-tag-store.js"></script>
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --panel: #121a26;
+      --panel2: #0f1520;
+      --border: #243044;
+      --text: #e8eef5;
+      --muted: #8b9cb3;
+      --amz: #ff9900;
+      --erp: #a855f7;
+      --ok: #22c55e;
+      --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font);
+      background: radial-gradient(900px 500px at 0% 0%, rgba(168, 85, 247, 0.1), transparent),
+        radial-gradient(700px 400px at 100% 0%, rgba(255, 153, 0, 0.08), transparent), var(--bg);
+      color: var(--text); line-height: 1.5;
+    }
+    .app { max-width: 1280px; margin: 0 auto; padding: 20px 16px 48px; }
+    header { margin-bottom: 20px; }
+    h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 6px; }
+    .lead { color: var(--muted); font-size: 0.88rem; margin: 0; max-width: 760px; }
+    .badge {
+      display: inline-block; margin-bottom: 10px; padding: 4px 10px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700; background: rgba(168, 85, 247, 0.15);
+      color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+    .layout { display: grid; gap: 16px; grid-template-columns: 1fr; }
+    @media (min-width: 960px) { .layout { grid-template-columns: 1fr 360px; align-items: start; } }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+    .form-section {
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+    }
+    .form-section:first-of-type { border-top: none; padding-top: 0; }
+    .form-section h2 {
+      font-size: 1rem; margin: 0 0 4px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .form-section h2 .step-no {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 6px; font-size: 0.72rem;
+      background: rgba(168, 85, 247, 0.2); color: #e9d5ff; flex-shrink: 0;
+    }
+    .step-hint { font-size: 0.8rem; color: var(--muted); margin: 0 0 16px; }
+    .field-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .field-full { grid-column: 1 / -1; }
+    label span { display: block; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 4px; }
+    label .req::after { content: " *"; color: #f87171; }
+    input, select, textarea {
+      width: 100%; background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 11px; font-size: 0.88rem;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--erp); }
+    .seg-toggle { display: flex; gap: 8px; flex-wrap: wrap; }
+    .seg-btn {
+      padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--panel2); cursor: pointer; font-size: 0.85rem; font-weight: 600;
+    }
+    .seg-btn.selected { border-color: var(--erp); background: rgba(168, 85, 247, 0.12); color: #e9d5ff; }
+    .chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .chip {
+      padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border);
+      font-size: 0.78rem; cursor: pointer; background: var(--panel2);
+    }
+    .chip.selected { border-color: var(--amz); background: rgba(255, 153, 0, 0.1); }
+    .chip-hint { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+    .strategy-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+    .strategy-item {
+      padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--panel2); cursor: pointer; font-size: 0.85rem;
+    }
+    .strategy-item.selected { border-color: var(--erp); background: rgba(168, 85, 247, 0.1); }
+    .strategy-item .code { font-size: 0.72rem; color: var(--muted); font-family: ui-monospace, monospace; }
+    .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+    .pick-card {
+      padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--panel2); cursor: pointer; text-align: center; font-size: 0.82rem; font-weight: 600;
+    }
+    .pick-card.selected { border-color: var(--amz); background: rgba(255, 153, 0, 0.08); }
+    .pick-card .opt { font-size: 0.68rem; color: var(--muted); font-weight: 400; }
+    .pub-quick { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .pub-quick button {
+      padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--panel2); color: var(--text); font-size: 0.78rem; cursor: pointer;
+    }
+    .pub-quick button:hover { border-color: var(--amz); }
+    .cat-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;
+      margin: 8px 0 16px;
+    }
+    .cat-card {
+      padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--panel2); cursor: pointer; font-size: 0.82rem;
+    }
+    .cat-card.selected { border-color: var(--amz); background: rgba(255, 153, 0, 0.08); }
+    .cat-card .sub { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+    .pub-list {
+      max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;
+    }
+    .pub-item {
+      padding: 8px 12px; font-size: 0.82rem; cursor: pointer; border-bottom: 1px solid var(--border);
+    }
+    .pub-item:last-child { border-bottom: none; }
+    .pub-item:hover { background: rgba(255,255,255,0.04); }
+    .pub-item.selected { background: rgba(255, 153, 0, 0.12); }
+    .publisher-selected {
+      margin-top: 10px; padding: 10px 12px; border-radius: 8px;
+      background: rgba(34, 197, 94, 0.08); border: 1px dashed rgba(34, 197, 94, 0.4);
+      font-size: 0.82rem;
+    }
+    .publisher-selected strong { color: #86efac; }
+    .formula-box {
+      font-family: ui-monospace, monospace; font-size: 0.7rem; line-height: 1.6;
+      padding: 10px 12px; background: #0a0e14; border-radius: 8px; border: 1px solid var(--border);
+      color: var(--muted); margin-bottom: 12px; word-break: break-all;
+    }
+    .formula-box em { color: #fde68a; font-style: normal; }
+    .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    button {
+      padding: 9px 18px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none;
+    }
+    .btn-primary { background: var(--erp); color: #fff; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .preview-sticky { position: sticky; top: 16px; }
+    .preview-name {
+      font-family: ui-monospace, monospace; font-size: 0.72rem; word-break: break-all;
+      padding: 12px; background: #0a0e14; border-radius: 8px; border: 1px solid var(--border);
+      color: #fde68a; margin: 10px 0;
+    }
+    .kv { font-size: 0.76rem; display: grid; gap: 5px; }
+    .kv div { display: flex; justify-content: space-between; gap: 8px; }
+    .kv dt { color: var(--muted); flex-shrink: 0; }
+    .kv dd { margin: 0; text-align: right; font-family: ui-monospace, monospace; font-size: 0.7rem; max-width: 58%; word-break: break-all; }
+    .example-list { font-size: 0.72rem; color: var(--muted); margin: 10px 0 0; padding-left: 16px; }
+    .example-list code { color: #a5f3fc; font-size: 0.68rem; }
+    .console-list { font-size: 0.78rem; margin: 12px 0 0; padding-left: 18px; color: var(--muted); }
+    .console-list code { color: #fcd34d; font-size: 0.72rem; }
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      padding: 12px 20px; background: #166534; color: #fff; border-radius: 10px;
+      font-size: 0.88rem; opacity: 0; pointer-events: none; transition: 0.25s; z-index: 99;
+    }
+    .toast.show { opacity: 1; }
+    .readonly-field { opacity: 0.85; }
+    footer.doc-footer { text-align: center; font-size: 0.72rem; color: var(--muted); margin-top: 24px; }
+    .nav-links { margin-top: 10px; font-size: 0.8rem; }
+    .nav-links a { color: #7eb3ff; margin-right: 12px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="badge">② Tag 中心 · 统一规范名称 Demo</div>
+      <h1>Amazon Attribution Tag 创建</h1>
+      <p class="lead">单页表单按顺序填写各区块即可；右侧实时生成 <strong>统一规范名称</strong>，无需切换页面。</p>
+      <p class="nav-links">
+        <a href="./amazon-attribution-tag-manage-demo.html">Tag 管理 →</a>
+        <a href="./amazon-attribution-tag-overview-demo.html">数据总览</a>
+        <a href="./amazon-attribution-taxonomy-config-demo.html">字典配置</a>
+        <a href="./attribution-campaign-create-sop.html">创建 SOP</a>
+        <a href="./channel-taxonomy-v1.html">渠道字典</a>
+      </p>
+    </header>
+
+    <div class="layout">
+      <div class="card main-wizard">
+        <section class="form-section" id="section-basic">
+          <h2><span class="step-no">1</span>基础与推广对象</h2>
+          <p class="step-hint">店铺、定位、MSKU（可多选）、活动名称、预计投放日期</p>
+          <div class="field-grid">
+            <label class="field-full"><span class="req">店铺</span>
+              <select id="shop"></select>
+            </label>
+            <label class="field-full"><span class="req">定位</span>
+              <div class="seg-toggle" id="targetingToggle">
+                <button type="button" class="seg-btn selected" data-target="P">Product（P · 单品 PDP）</button>
+                <button type="button" class="seg-btn" data-target="S">Store（S · 店铺页）</button>
+              </div>
+            </label>
+            <label class="field-full"><span class="req">MSKU</span>
+              <div class="chip-list" id="mskuChips"></div>
+              <p class="chip-hint" id="mskuHint">可多选；选 2 个及以上时命名段为 <code>MultipleSKUs</code></p>
+            </label>
+            <label class="field-full"><span class="req">活动名称</span>
+              <input id="campaignName" value="NewProductPromotion" placeholder="如 NewProductPromotion（勿含空格）" />
+            </label>
+            <label><span class="req">预计投放日期</span>
+              <input type="date" id="launchDate" />
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section" id="section-landing">
+          <h2><span class="step-no">2</span>落地页</h2>
+          <p class="step-hint">Product 固定 PDP；Store 选店铺子页，名称去空格并 PascalCase</p>
+          <div class="field-grid">
+            <label class="field-full" id="landingProductWrap">
+              <span class="req">落地页</span>
+              <input id="landingProduct" value="PDP" readonly class="readonly-field" />
+            </label>
+            <label class="field-full" id="landingStoreWrap" hidden>
+              <span class="req">店铺落地页名称</span>
+              <select id="landingStore">
+                <option value="LightingSpace">Lighting Space → LightingSpace</option>
+                <option value="SmartHome">Smart Home → SmartHome</option>
+                <option value="Outdoor">Outdoor</option>
+                <option value="BrandStore">Brand Store → BrandStore</option>
+              </select>
+              <input id="landingStoreCustom" placeholder="或自定义（自动 PascalCase）" style="margin-top:8px" />
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section" id="section-strategy">
+          <h2><span class="step-no">3</span>渠道与营销策略</h2>
+          <p class="step-hint">广告类型对应 Console Channel（必选其一）；营销大小类决定组合短码</p>
+          <label><span class="req">广告类型</span></label>
+          <div class="channel-grid" id="adTypeGrid"></div>
+          <p style="font-size:0.72rem;color:var(--muted);margin:12px 0 8px">营销大类 / 营销小类（组合短码写入统一规范名称）</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><span style="font-size:0.72rem;color:var(--muted)">营销大类</span><div class="strategy-list" id="majorList"></div></div>
+            <div><span style="font-size:0.72rem;color:var(--muted)">营销小类 · 短码</span><div class="strategy-list" id="minorList"></div></div>
+          </div>
+        </section>
+
+        <section class="form-section" id="section-publisher">
+          <h2><span class="step-no">4</span>平台载体（Publisher）</h2>
+          <p class="step-hint">先选 Publisher 分类，再选具体项（名称须与 Amazon Console 完全一致）</p>
+          <p id="publisherNeedChannel" class="chip-hint" hidden>请先在上方选择广告类型，再加载 Publisher 分类</p>
+          <p style="font-size:0.72rem;color:var(--muted);margin:0 0 8px"><span class="req">分类</span></p>
+          <div class="cat-grid" id="publisherCategoryGrid"></div>
+          <div id="publisherDetail" hidden>
+            <p style="font-size:0.72rem;color:var(--muted);margin:0 0 8px">具体 Publisher</p>
+            <div class="search-box" id="publisherSearchWrap" hidden style="margin-bottom:8px">
+              <input type="search" id="publisherSearch" placeholder="搜索预设媒体…" />
+            </div>
+            <div class="pub-list" id="publisherItemList"></div>
+            <label id="publisherCustomWrap" style="display:none;margin-top:10px">
+              <span style="font-size:0.72rem;color:var(--muted)">自定义名称（Console 选 New）</span>
+              <input id="publisherCustom" placeholder="与 Console Publisher name 完全一致" />
+            </label>
+          </div>
+          <p class="publisher-selected" id="publisherSelected">已选：<strong>—</strong></p>
+        </section>
+
+        <section class="form-section" id="section-submit">
+          <h2><span class="step-no">5</span>确认提交</h2>
+          <p class="step-hint">核对右侧预览后提交，直接进入 <code>pending_amazon</code>（无草稿态）。品牌/渠道推广提交后，由渠道推广同事在 <a href="./amazon-attribution-tag-manage-demo.html" style="color:#7eb3ff">管理页</a> 统一去 Amazon Console 创建并配对</p>
+          <div id="confirmSummary"></div>
+        </section>
+
+        <div class="actions">
+          <button type="button" class="btn-primary" id="btnSubmit">提交 Tag 申请</button>
+        </div>
+
+      <aside class="preview-sticky">
+        <div class="card">
+          <h2 style="font-size:0.95rem;margin:0 0 8px">统一规范名称</h2>
+          <div class="formula-box" id="formulaHint">
+            <em>{店铺}_{P|S}_{MSKU}_{活动名}_{落地页}_{广告类型}_{组合短码}_{平台载体}_{YYYYMMDD}</em>
+            <span style="display:block;margin-top:6px;font-size:0.65rem;color:#6b7c93">店铺编码为 品牌_站点，如 Govee_US</span>
+          </div>
+          <div class="preview-name" id="canonicalPreview">—</div>
+          <dl class="kv" id="kvPreview"></dl>
+          <p style="font-size:0.72rem;color:var(--muted);margin:12px 0 6px">示例</p>
+          <ul class="example-list">
+            <li>单品：<code>Govee_US_P_H6076113-US_NewProductPromotion_PDP_Social_PSoPF_Facebook_20260511</code></li>
+            <li>店铺：<code>Govee_US_S_MultipleSKUs_PD_LightingSpace_Social_PSoPF_Facebook_20260511</code></li>
+          </ul>
+          <h3 style="font-size:0.82rem;margin:16px 0 8px;color:var(--muted)">Console 对照</h3>
+          <ol class="console-list">
+            <li>Ad group name = <code id="ckName">—</code></li>
+            <li>Channel = <code id="ckChannel">—</code></li>
+            <li>Publisher = <code id="ckPublisher">—</code></li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="doc-footer">Demo · 字段规范见业务表 · 营销短码来自 channel-taxonomy-v1 · 作者：@beynawoo-code</footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="./amazon-attribution-tag-create-demo.js"></script>
+</body>
+</html>

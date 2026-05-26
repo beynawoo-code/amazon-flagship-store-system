@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon Attribution Publisher 选型 v1.1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#07090f; --card:#0e1422; --border:rgba(255,255,255,.08); --txt:#dde6f5; --txt2:#7a90b0; --amz:#ff9900; --erp:#a855f7; }
+    body { font-family: Inter, sans-serif; background: var(--bg); color: var(--txt); padding: 40px 48px 80px; max-width: 1100px; margin: 0 auto; line-height: 1.55 }
+    .badge { display:inline-block;padding:4px 12px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.4);color:var(--amz);margin-bottom:12px }
+    h1 { font-size:24px;margin-bottom:8px }
+    .sub { color:var(--txt2);font-size:14px;margin-bottom:20px }
+    a { color:#7eb3ff;margin-right:14px;font-size:13px }
+    section { margin:32px 0 }
+    h2 { font-size:16px;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:14px }
+    .callout { background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.35);border-radius:10px;padding:14px;font-size:13px;margin-bottom:20px }
+    .callout-warn { background:rgba(255,153,0,.08);border-color:rgba(255,153,0,.3);margin-top:12px }
+    .grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px }
+    .cat-card { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px }
+    .cat-card.highlight { border-color:rgba(168,85,247,.45) }
+    .cat-title { font-weight:700;font-size:14px;margin-bottom:4px }
+    .cat-sub { font-size:11px;color:var(--txt2);margin-bottom:8px }
+    .cat-tag { font-size:9px;font-weight:700;color:var(--erp);text-transform:uppercase }
+    .flow { font-size:13px;color:var(--txt2);background:var(--card);padding:16px;border-radius:12px;border:1px solid var(--border) }
+    table { width:100%;border-collapse:collapse;font-size:12px;background:var(--card);border-radius:12px;overflow:hidden }
+    th,td { padding:8px 12px;border-top:1px solid var(--border);text-align:left }
+    th { background:rgba(0,0,0,.25);color:var(--txt2);font-size:10px;text-transform:uppercase }
+    code { background:rgba(0,0,0,.35);padding:1px 5px;border-radius:4px;font-size:11px }
+    footer { text-align:center;font-size:11px;color:#4a5e78;margin-top:48px }
+  </style>
+</head>
+<body>
+  <div class="badge">publishers v1.1 · ERP 分类向导</div>
+  <h1>Amazon Attribution · Publisher 选型</h1>
+  <p class="sub">ERP <strong>先分类、再选具体项</strong>；83 项预设按 Excel 分类折叠展示；Meta/联盟/KOL 走「主投平台」。</p>
+  <p>
+    <a href="channel-taxonomy-v1.html">← 渠道字典</a>
+    <a href="attribution-campaign-create-sop.html">Attribution SOP</a>
+    <a href="amazon-attribution-publishers-v1.md">Markdown</a>
+    <a href="amazon-attribution-publishers-v1.json">JSON · erp_publisher_wizard</a>
+    <a href="channel-taxonomy-v1.xlsx">Excel · ERP Publisher向导</a>
+  </p>
+
+  <section>
+    <h2>ERP 三步（Tag 中心 Step Publisher）</h2>
+    <div class="flow">
+      <strong>5a 选择方式</strong>：系统推荐 · 主投平台（New）· 浏览亚马逊预设<br/>
+      <strong>5b 平台分类</strong>：见下方卡片（随 Channel 过滤）<br/>
+      <strong>5c 具体 Publisher</strong>：点选 Facebook / google ads 等 → 写入 <code>publisher_name</code>
+    </div>
+    <div class="callout"><strong>主投平台（P0）</strong> — Console 须选 <strong>New</strong></div>
+    <div class="grid"><div class="cat-card highlight"><div class="cat-title">Meta</div><div class="cat-sub">Facebook · Instagram</div><div class="cat-tag">主投 · Console New</div></div><div class="cat-card highlight"><div class="cat-title">TikTok</div><div class="cat-sub">TikTok</div><div class="cat-tag">主投 · Console New</div></div><div class="cat-card highlight"><div class="cat-title">红人 / KOL</div><div class="cat-sub">达人名或主页平台</div><div class="cat-tag">主投 · Console New</div></div><div class="cat-card highlight"><div class="cat-title">联盟平台</div><div class="cat-sub">Levanta · Impact · ShareASale · Creator Connections</div><div class="cat-tag">主投 · Console New</div></div></div>
+    <div class="callout callout-warn" style="margin-top:20px"><strong>亚马逊预设分类（P0 高亮）</strong> — Console 直接选同名项</div>
+    <div class="grid"><div class="cat-card"><div class="cat-title">Google 系</div><div class="cat-sub">4 项预设</div><div class="cat-tag">Console 预设</div></div><div class="cat-card"><div class="cat-title">DSP / 程序化</div><div class="cat-sub">22 项预设</div><div class="cat-tag">Console 预设</div></div><div class="cat-card"><div class="cat-title">社区 / 视频</div><div class="cat-sub">5 项预设</div><div class="cat-tag">Console 预设</div></div><div class="cat-card"><div class="cat-title">品牌自有（账户内）</div><div class="cat-sub">2 项预设</div><div class="cat-tag">Console 预设</div></div></div>
+    <p style="font-size:11px;color:var(--txt2);margin-top:12px">「媒体/内容方」等长尾类默认折叠，可搜索展开。完整 83 项见 Excel「Amazon预设Publisher」。</p>
+  </section>
+
+  <section>
+    <h2>P0 营销策略 → 推荐 Publisher</h2>
+    <table>
+      <thead><tr><th>Channel</th><th>策略</th><th>ERP方式</th><th>推荐</th></tr></thead>
+      <tbody><tr><td><code>search</code></td><td><code>ps_performance</code></td><td>推荐</td><td><code>google ads</code></td></tr><tr><td><code>search</code></td><td><code>ps_brand</code></td><td>浏览预设</td><td><code>google ads</code></td></tr><tr><td><code>search</code></td><td><code>ps_generic</code></td><td>浏览预设</td><td><code>google ads</code></td></tr><tr><td><code>search</code></td><td><code>pshop_generic</code></td><td>浏览预设</td><td><code>google ads</code></td></tr><tr><td><code>social</code></td><td><code>psoc_performance</code></td><td>主投平台</td><td><code>Facebook</code></td></tr><tr><td><code>social</code></td><td><code>psoc_retargeting</code></td><td>主投平台</td><td><code>Facebook</code></td></tr><tr><td><code>social</code></td><td><code>psoc_influencer</code></td><td>主投平台</td><td><code>{KOL名或平台}</code></td></tr><tr><td><code>social</code></td><td><code>psoc_generic</code></td><td>主投平台</td><td><code>Facebook</code></td></tr><tr><td><code>social</code></td><td><code>osoc_brand_owned</code></td><td>主投平台</td><td><code>Instagram</code></td></tr><tr><td><code>social</code></td><td><code>osoc_influencer</code></td><td>主投平台</td><td><code>{KOL名}</code></td></tr><tr><td><code>social</code></td><td><code>osoc_generic</code></td><td>主投平台</td><td><code>Instagram</code></td></tr><tr><td><code>social</code></td><td><code>aff_network</code></td><td>主投平台</td><td><code>Levanta</code></td></tr><tr><td><code>social</code></td><td><code>aff_creator</code></td><td>主投平台</td><td><code>Creator Connections</code></td></tr><tr><td><code>social</code></td><td><code>aff_generic</code></td><td>主投平台</td><td><code>Levanta</code></td></tr><tr><td><code>social</code></td><td><code>pother_generic</code></td><td>主投平台</td><td><code></code></td></tr><tr><td><code>display</code></td><td><code>dsp_generic</code></td><td>主投平台</td><td><code>{DSP名}</code></td></tr><tr><td><code>display</code></td><td><code>xnet_generic</code></td><td>浏览预设</td><td><code>google ads</code></td></tr><tr><td><code>video</code></td><td><code>pv_generic</code></td><td>浏览预设</td><td><code>Youtube</code></td></tr><tr><td><code>video</code></td><td><code>ov_generic</code></td><td>浏览预设</td><td><code>Youtube</code></td></tr><tr><td><code>email</code></td><td><code>em_promo</code></td><td>主投平台</td><td><code>Klaviyo</code></td></tr><tr><td><code>email</code></td><td><code>em_generic</code></td><td>主投平台</td><td><code>Klaviyo</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+  <footer>v1.1 · 2026-05-19 · 作者：@beynawoo-code</footer>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旗舰店数据看板 · Demo 预览</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --border: #2d3a4d;
+      --text: #e8eef5;
+      --muted: #8b9cb3;
+      --accent: #3b82f6;
+      --accent2: #22c55e;
+      --warn: #f59e0b;
+      --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: linear-gradient(165deg, #0b0f14 0%, var(--bg) 40%, #121a24 100%);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 20px 48px; }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.02em; }
+    .sub { color: var(--muted); font-size: 0.875rem; max-width: 560px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245, 158, 11, 0.12);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      align-items: center;
+      padding: 16px 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+    }
+    .toolbar label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 4px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      font-size: 0.8rem;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .chip:hover { border-color: var(--accent); }
+    .chip.on { border-color: var(--accent); background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+    .chip input { accent-color: var(--accent); }
+    select {
+      background: #0d1218;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      min-width: 140px;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .kpi .name { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .kpi .val { font-size: 1.45rem; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .kpi .delta { font-size: 0.78rem; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .kpi .delta.up { color: #86efac; }
+    .kpi .delta.down { color: #fca5a5; }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 960px) {
+      .grid2 { grid-template-columns: 1.4fr 1fr; }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+    .card h2 { font-size: 0.95rem; font-weight: 600; margin: 0 0 14px; color: #cbd5e1; }
+    .chart-h { height: 280px; position: relative; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    tr:last-child td { border-bottom: none; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    footer { margin-top: 28px; font-size: 0.75rem; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>亚马逊旗舰店 · 数据看板（Demo）</h1>
+        <p class="sub">演示用随机趋势数据，用于预览布局、筛选与同比/环比样式。正式环境由数仓/API 替换。</p>
+      </div>
+      <span class="badge">演示数据 · 非真实 API</span>
+    </header>
+
+    <div class="toolbar">
+      <div>
+        <label>站点（多选聚合）</label>
+        <div class="chips" id="marketChips"></div>
+      </div>
+      <div>
+        <label>对比</label>
+        <select id="compareMode">
+          <option value="none">无对比</option>
+          <option value="wow" selected>环比（对上一段同长度）</option>
+          <option value="yoy">同比（去年同日历区间）</option>
+        </select>
+      </div>
+      <div>
+        <label>趋势指标</label>
+        <select id="metricKey">
+          <option value="visits">VISITS 访问次数</option>
+          <option value="views">VIEWS 页面浏览</option>
+          <option value="orders">ORDERS 估算订单</option>
+          <option value="sales">SALES 估算销售额（本币指数）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>趋势 · 所选站点合计</h2>
+        <div class="chart-h"><canvas id="trend"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>旅程快照（期末值示意）</h2>
+        <div class="chart-h"><canvas id="funnel"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="card">
+        <h2>页面 Top 5（演示）</h2>
+        <table>
+          <thead><tr><th>Page</th><th class="num">VISITS</th><th class="num">VIEWS</th><th class="num">Bounce</th></tr></thead>
+          <tbody id="pageRows"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h2>ASIN Top 5（演示）</h2>
+        <table>
+          <thead><tr><th>ASIN</th><th class="num">VIEWS</th><th class="num">CLICKS</th><th class="num">ORDERS</th></tr></thead>
+          <tbody id="asinRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer>Amazon Brand Store Insights / ASIN Engagement 字段仅为产品设计对齐；数值均为前端生成。打开方式：本地双击本文件或用静态服务器打开。</footer>
+  </div>
+
+  <script>
+    const MARKETS = [
+      { id: "US", label: "US", seed: 11 },
+      { id: "CA", label: "CA", seed: 17 },
+      { id: "UK", label: "UK", seed: 23 },
+      { id: "DE", label: "DE", seed: 29 },
+      { id: "ES", label: "ES", seed: 31 },
+      { id: "IT", label: "IT", seed: 37 },
+      { id: "FR", label: "FR", seed: 41 },
+    ];
+
+    const state = {
+      selected: new Set(MARKETS.map((m) => m.id)),
+      days: 30,
+    };
+
+    function mulberry32(a) {
+      return function () {
+        let t = (a += 0x6d2b79f5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function seriesForMarket(market, len, offsetDays) {
+      const rnd = mulberry32(market.seed + offsetDays * 997);
+      const out = [];
+      let v = 4000 + rnd() * 2000;
+      for (let i = 0; i < len; i++) {
+        const w = Math.sin((i + offsetDays) / 5) * 0.08 + 1 + (rnd() - 0.45) * 0.06;
+        v = Math.max(800, v * w);
+        const visits = Math.round(v);
+        const views = Math.round(visits * (1.85 + rnd() * 0.35));
+        const visitors = Math.round(visits * (0.72 + rnd() * 0.1));
+        const orders = Math.round(visits * (0.045 + rnd() * 0.02));
+        const units = Math.round(orders * (1.2 + rnd() * 0.5));
+        const sales = Math.round(orders * (48 + rnd() * 22) * 100) / 100;
+        out.push({ visits, views, visitors, orders, units, sales });
+      }
+      return out;
+    }
+
+    function aggregateSeries() {
+      const len = state.days;
+      const cur = Array.from({ length: len }, () => ({
+        visits: 0, views: 0, visitors: 0, orders: 0, units: 0, sales: 0,
+      }));
+      for (const m of MARKETS) {
+        if (!state.selected.has(m.id)) continue;
+        const s = seriesForMarket(m, len, 0);
+        for (let i = 0; i < len; i++) {
+          for (const k of Object.keys(cur[i])) cur[i][k] += s[i][k];
+        }
+      }
+      return cur;
+    }
+
+    function priorSeries(mode) {
+      const len = state.days;
+      const off = mode === "yoy" ? 365 : len;
+      const agg = Array.from({ length: len }, () => ({
+        visits: 0, views: 0, visitors: 0, orders: 0, units: 0, sales: 0,
+      }));
+      for (const m of MARKETS) {
+        if (!state.selected.has(m.id)) continue;
+        const s = seriesForMarket(m, len, off);
+        for (let i = 0; i < len; i++) {
+          for (const k of Object.keys(agg[i])) agg[i][k] += s[i][k];
+        }
+      }
+      return agg;
+    }
+
+    function fmtInt(n) {
+      return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    }
+
+    function fmtMoney(n) {
+      return n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    function pctChange(cur, prev) {
+      if (!prev || prev === 0) return null;
+      return ((cur - prev) / prev) * 100;
+    }
+
+    function renderChips() {
+      const el = document.getElementById("marketChips");
+      el.innerHTML = MARKETS.map((m) => {
+        const on = state.selected.has(m.id) ? "on" : "";
+        return `<label class="chip ${on}"><input type="checkbox" value="${m.id}" ${state.selected.has(m.id) ? "checked" : ""}/> ${m.label}</label>`;
+      }).join("");
+      el.querySelectorAll("input").forEach((inp) => {
+        inp.addEventListener("change", () => {
+          if (inp.checked) state.selected.add(inp.value);
+          else state.selected.delete(inp.value);
+          if (state.selected.size === 0) {
+            state.selected.add(inp.value);
+            inp.checked = true;
+          }
+          el.querySelectorAll("label.chip").forEach((lb) => {
+            const id = lb.querySelector("input").value;
+            lb.classList.toggle("on", state.selected.has(id));
+          });
+          refresh();
+        });
+      });
+    }
+
+    let chartTrend;
+    let chartFunnel;
+
+    function refresh() {
+      const cur = aggregateSeries();
+      const mode = document.getElementById("compareMode").value;
+      const prev = mode === "none" ? null : priorSeries(mode);
+      const metric = document.getElementById("metricKey").value;
+
+      const labels = cur.map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (state.days - 1 - i));
+        return `${d.getMonth() + 1}/${d.getDate()}`;
+      });
+
+      const curVals = cur.map((r) => r[metric]);
+      const datasets = [
+        {
+          label: metric.toUpperCase() + " · 当前",
+          data: curVals,
+          borderColor: "#3b82f6",
+          backgroundColor: "rgba(59,130,246,0.12)",
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          borderWidth: 2,
+        },
+      ];
+      if (prev) {
+        datasets.push({
+          label: mode === "yoy" ? "对比 · 去年同期" : "对比 · 上一同长区间",
+          data: prev.map((r) => r[metric]),
+          borderColor: "#94a3b8",
+          borderDash: [6, 4],
+          fill: false,
+          tension: 0.35,
+          pointRadius: 0,
+          borderWidth: 2,
+        });
+      }
+
+      if (chartTrend) chartTrend.destroy();
+      chartTrend = new Chart(document.getElementById("trend"), {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: "#cbd5e1" } } },
+          scales: {
+            x: { ticks: { color: "#8b9cb3", maxTicksLimit: 10 }, grid: { color: "rgba(255,255,255,0.06)" } },
+            y: { ticks: { color: "#8b9cb3" }, grid: { color: "rgba(255,255,255,0.06)" } },
+          },
+        },
+      });
+
+      const last = cur[cur.length - 1];
+      const prevLast = prev ? prev[prev.length - 1] : null;
+      const funnelLabels = ["VISITS", "VIEWS", "VISITORS", "ORDERS", "SALES"];
+      const funnelData = [last.visits, last.views, last.visitors, last.orders, last.sales / 3];
+      if (chartFunnel) chartFunnel.destroy();
+      chartFunnel = new Chart(document.getElementById("funnel"), {
+        type: "bar",
+        data: {
+          labels: funnelLabels,
+          datasets: [{
+            label: "期末示意（Sales 缩放仅用于同图展示）",
+            data: funnelData,
+            backgroundColor: ["#3b82f6", "#2563eb", "#1d4ed8", "#22c55e", "#eab308"],
+            borderRadius: 6,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: "y",
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#8b9cb3" }, grid: { color: "rgba(255,255,255,0.06)" } },
+            y: { ticks: { color: "#cbd5e1" }, grid: { display: false } },
+          },
+        },
+      });
+
+      const kpiDefs = [
+        { key: "visits", name: "VISITS", fmt: fmtInt },
+        { key: "visitors", name: "VISITORS", fmt: fmtInt },
+        { key: "views", name: "VIEWS", fmt: fmtInt },
+        { key: "orders", name: "ORDERS", fmt: fmtInt },
+        { key: "sales", name: "SALES", fmt: fmtMoney },
+      ];
+      document.getElementById("kpis").innerHTML = kpiDefs
+        .map(({ key, name, fmt }) => {
+          const v = last[key];
+          const p = prevLast ? prevLast[key] : null;
+          const ch = p != null ? pctChange(v, p) : null;
+          let deltaHtml = "";
+          if (ch != null) {
+            const cls = ch >= 0 ? "up" : "down";
+            const arrow = ch >= 0 ? "↑" : "↓";
+            deltaHtml = `<div class="delta ${cls}">${arrow} ${Math.abs(ch).toFixed(1)}% vs 对比期</div>`;
+          } else {
+            deltaHtml = `<div class="delta" style="color:var(--muted)">无对比</div>`;
+          }
+          return `<div class="kpi"><div class="name">${name}</div><div class="val">${fmt(v)}</div>${deltaHtml}</div>`;
+        })
+        .join("");
+
+      const pages = [
+        ["Home · Hero", 0.28],
+        ["Series · Smart Lights", 0.19],
+        ["BFCM Landing", 0.14],
+        ["New Arrivals", 0.12],
+        ["Support & FAQ", 0.09],
+      ];
+      const rnd = mulberry32(99 + state.selected.size);
+      document.getElementById("pageRows").innerHTML = pages
+        .map(([name, share]) => {
+          const vi = Math.round(last.visits * share * (0.9 + rnd() * 0.2));
+          const vw = Math.round(vi * (1.7 + rnd() * 0.3));
+          const bounce = (32 + rnd() * 18).toFixed(1) + "%";
+          return `<tr><td>${name}</td><td class="num">${fmtInt(vi)}</td><td class="num">${fmtInt(vw)}</td><td class="num">${bounce}</td></tr>`;
+        })
+        .join("");
+
+      const asins = ["B0DEMO001", "B0DEMO002", "B0DEMO003", "B0DEMO004", "B0DEMO005"];
+      document.getElementById("asinRows").innerHTML = asins
+        .map((asin) => {
+          const vw = Math.round(200 + rnd() * 1800);
+          const cl = Math.round(vw * (0.08 + rnd() * 0.12));
+          const or = Math.round(cl * (0.15 + rnd() * 0.25));
+          return `<tr><td>${asin}</td><td class="num">${fmtInt(vw)}</td><td class="num">${fmtInt(cl)}</td><td class="num">${fmtInt(or)}</td></tr>`;
+        })
+        .join("");
+    }
+
+    document.getElementById("compareMode").addEventListener("change", refresh);
+    document.getElementById("metricKey").addEventListener("change", refresh);
+
+    renderChips();
+    refresh();
+  </script>
+</body>
+</html>

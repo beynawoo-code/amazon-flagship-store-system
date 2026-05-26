@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旗舰店 ERP · Amazon Attribution Tag 数据总览（Demo）</title>
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --panel: #121a26;
+      --panel2: #0f1520;
+      --border: #243044;
+      --text: #e8eef5;
+      --muted: #8b9cb3;
+      --amz: #ff9900;
+      --erp: #a855f7;
+      --ok: #22c55e;
+      --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font);
+      background: radial-gradient(900px 500px at 0% 0%, rgba(168, 85, 247, 0.1), transparent),
+        radial-gradient(700px 400px at 100% 0%, rgba(255, 153, 0, 0.08), transparent), var(--bg);
+      color: var(--text); line-height: 1.5;
+    }
+    .app { max-width: min(1400px, 100%); margin: 0 auto; padding: 20px 16px 48px; }
+    header { margin-bottom: 20px; }
+    h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 6px; }
+    .lead { color: var(--muted); font-size: 0.88rem; margin: 0; max-width: 900px; }
+    .badge {
+      display: inline-block; margin-bottom: 10px; padding: 4px 10px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700; background: rgba(255, 153, 0, 0.12);
+      color: #fcd34d; border: 1px solid rgba(255, 153, 0, 0.35);
+    }
+    .nav-links { margin-top: 10px; font-size: 0.8rem; }
+    .nav-links a { color: #7eb3ff; margin-right: 12px; }
+    .toolbar-row {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; margin-bottom: 16px;
+    }
+    .toolbar-row label { font-size: 0.72rem; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+    .toolbar-row select {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 10px; font-size: 0.82rem;
+    }
+    label.date-range-filter { flex: 1; min-width: 220px; }
+    .date-range-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .date-range-display {
+      font-size: 0.76rem; color: #a5b4c8; white-space: nowrap; padding: 6px 10px; border-radius: 8px;
+      background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.22);
+    }
+    .date-range-display[hidden], .date-custom[hidden] { display: none !important; }
+    .date-custom {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 8px;
+      background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.22);
+    }
+    .date-custom input[type="date"] {
+      background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 8px; font-size: 0.76rem;
+    }
+    .compare-toolbar {
+      display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end;
+      margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border);
+      width: 100%;
+    }
+    .compare-toolbar label.compare-check {
+      flex-direction: row; align-items: center; gap: 6px;
+      font-size: 0.78rem; color: var(--text); cursor: pointer;
+    }
+    .compare-toolbar label.compare-check input { accent-color: var(--erp); }
+    .compare-range-wrap { flex: 1; min-width: 220px; }
+    .compare-range-wrap[hidden] { display: none !important; }
+    .compare-display-opts {
+      display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center;
+      font-size: 0.72rem; color: var(--muted);
+    }
+    .compare-display-opts label {
+      display: inline-flex; align-items: center; gap: 5px; cursor: pointer; color: var(--text);
+    }
+    .compare-display-opts[hidden] { display: none !important; }
+    .cell-metric-stack { vertical-align: top; }
+    .metric-primary { font-weight: 600; line-height: 1.3; }
+    .metric-compare { font-size: 0.68rem; color: #7eb3ff; line-height: 1.25; margin-top: 2px; }
+    .metric-pct { font-size: 0.65rem; font-weight: 600; line-height: 1.25; margin-top: 1px; }
+    .metric-pct.up,
+    .kpi .kpi-pct.up,
+    .kpi-pct.up { color: #4ade80; }
+    .metric-pct.down,
+    .kpi .kpi-pct.down,
+    .kpi-pct.down { color: #f87171; }
+    .metric-pct.flat,
+    .kpi .kpi-pct.flat,
+    .kpi-pct.flat { color: var(--muted); }
+    .metric-pct.new,
+    .kpi .kpi-pct.new,
+    .kpi-pct.new { color: #fcd34d; }
+    .kpi .kpi-compare { font-size: 0.68rem; color: #7eb3ff; margin-top: 2px; font-weight: 500; }
+    .kpi .kpi-pct,
+    .kpi-pct {
+      font-size: 0.65rem; margin-top: 2px; font-weight: 600; line-height: 1.25;
+    }
+    button, .btn-link {
+      padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-sm { padding: 6px 10px; font-size: 0.75rem; }
+    .kpi-row {
+      display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+      margin-bottom: 16px;
+    }
+    .kpi {
+      display: flex; flex-direction: column; align-items: stretch; min-width: 0;
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 10px 12px;
+    }
+    .kpi .lbl {
+      font-size: 0.62rem; color: var(--muted); line-height: 1.25;
+      margin: 0 0 6px;
+    }
+    .kpi .num {
+      font-size: 0.88rem; font-weight: 700; font-variant-numeric: tabular-nums;
+      line-height: 1.2; word-break: break-word; overflow-wrap: anywhere;
+    }
+    .kpi .kpi-compare { margin-top: 4px; }
+    .kpi .kpi-pct { margin-top: 2px; }
+    .kpi.highlight { border-color: var(--amz); }
+    .kpi.highlight .num { font-size: 1.05rem; }
+    button.kpi.kpi-trend-pick {
+      cursor: pointer; text-align: left; font-family: inherit; color: var(--text);
+      width: 100%; transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+    button.kpi.kpi-trend-pick:hover:not(:disabled) { border-color: #3d4a5c; }
+    button.kpi.kpi-trend-pick.active {
+      border-color: var(--metric-color);
+      box-shadow: inset 0 0 0 1px var(--metric-color);
+    }
+    button.kpi.kpi-trend-pick:disabled { opacity: 0.5; cursor: not-allowed; }
+    .kpi-head {
+      display: flex; align-items: flex-start; gap: 5px; margin-bottom: 6px; min-width: 0;
+    }
+    .kpi-head .lbl { margin: 0; flex: 1; min-width: 0; order: unset; }
+    .kpi-trend-tag {
+      flex-shrink: 0; width: 14px; height: 4px; border-radius: 2px; margin-top: 5px;
+      background: var(--metric-color, #4b5563);
+    }
+    button.kpi.kpi-trend-pick:not(.active) .num { color: #9aa8bc; }
+    .section {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 18px; margin-bottom: 16px;
+    }
+    .section h2 { font-size: 0.95rem; margin: 0 0 4px; }
+    .section .hint { font-size: 0.72rem; color: var(--muted); margin: 0 0 12px; }
+    .grid-2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+    .chart-box { height: 260px; position: relative; }
+    .chart-box-trend { height: 340px; }
+    .section-head { margin-bottom: 10px; }
+    .section-head h2 { margin: 0 0 4px; }
+    .section-head .hint { margin: 0; }
+    .trend-chart-empty {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-size: 0.82rem; pointer-events: none;
+    }
+    .table-scroll { overflow-x: auto; max-width: 100%; }
+    .mini-scroll { max-height: 280px; overflow: auto; }
+    table { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; font-size: 0.65rem; white-space: nowrap; }
+    th.col-dim, td.col-dim { min-width: 120px; max-width: 200px; position: sticky; left: 0; z-index: 1; background: var(--panel); }
+    tr.drill-row td.col-dim { background: var(--panel2); }
+    tr.clickable:hover td.col-dim { background: #151d2b; }
+    th.th-metric { min-width: 72px; }
+    th.th-metric-sortable {
+      cursor: pointer; user-select: none; text-align: right;
+    }
+    th.th-metric-sortable:hover { color: var(--text); }
+    th.th-metric-sortable.sorted { color: #c4b5fd; }
+    .th-sort-wrap { display: inline-flex; align-items: center; justify-content: flex-end; gap: 3px; }
+    .th-sort-icon { opacity: 0.35; font-size: 0.58rem; line-height: 1; }
+    th.th-metric-sortable.sorted .th-sort-icon { opacity: 1; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tr.clickable { cursor: pointer; }
+    tr.clickable:hover td { background: rgba(168, 85, 247, 0.08); }
+    tr.active td { background: rgba(168, 85, 247, 0.12); }
+    tr.drill-row td { background: var(--panel2); font-size: 0.74rem; }
+    .empty-hint { color: var(--muted); font-size: 0.82rem; padding: 20px; text-align: center; }
+    .publisher-detail {
+      margin-top: 12px; padding: 12px; border-radius: 8px; border: 1px dashed var(--border);
+      background: var(--panel2);
+    }
+    .publisher-detail h3 { font-size: 0.85rem; margin: 0 0 6px; color: #c4b5fd; }
+    .publisher-detail .hint { margin: 0 0 10px; }
+    .doc-footer { margin-top: 24px; font-size: 0.72rem; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="badge">③ Tag 中心 · 数据总览 Demo</div>
+      <h1>Amazon Attribution Tag 数据总览</h1>
+      <p class="lead">
+        按所选<strong>数据时间</strong>对 Tag 归因指标做 Summary 汇总，并从店铺、定位、广告类型、营销大类/小类、Publisher 等维度对比表现，辅助判断哪些营销方式与投放载体更有效。
+        仅统计在所选时间区间内<strong>有 metrics 且周期重叠</strong>的 Tag（与<a href="./amazon-attribution-tag-manage-demo.html" style="color:#7eb3ff">管理页</a>规则一致）。
+      </p>
+      <p class="nav-links">
+        <a href="./amazon-attribution-tag-manage-demo.html">← Tag 管理</a>
+        <a href="./amazon-attribution-tag-create-demo.html">创建 Tag</a>
+        <a href="./amazon-attribution-taxonomy-config-demo.html">字典配置</a>
+        <a href="./attribution-campaign-create-sop.html">创建 SOP</a>
+      </p>
+    </header>
+
+    <div class="toolbar-row">
+      <label>店铺
+        <select id="filterShop"><option value="">全部店铺</option></select>
+      </label>
+      <label>币种
+        <select id="filterCurrency"><option value="USD">USD ($)</option></select>
+      </label>
+      <label class="date-range-filter">数据时间
+        <div class="date-range-controls">
+          <select id="filterDatePreset">
+            <option value="">全部</option>
+            <option value="7d">近 7 天</option>
+            <option value="30d" selected>近 30 天</option>
+            <option value="month">本月</option>
+            <option value="custom">自定义</option>
+          </select>
+          <span id="filterDateRangeDisplay" class="date-range-display" hidden></span>
+          <span class="date-custom" id="filterDateCustom" hidden>
+            <input type="date" id="filterDateFrom" aria-label="开始日期" />
+            <span style="color:var(--muted)">—</span>
+            <input type="date" id="filterDateTo" aria-label="结束日期" />
+          </span>
+        </div>
+      </label>
+      <button type="button" class="btn-secondary btn-sm" id="btnResetSeed">重置 Demo 数据</button>
+      <div class="compare-toolbar">
+        <label class="compare-check">
+          <input type="checkbox" id="compareEnabled" />
+          启用对比
+        </label>
+        <label class="date-range-filter compare-range-wrap" id="compareRangeWrap" hidden>
+          对比时间
+          <div class="date-range-controls">
+            <select id="compareDatePreset">
+              <option value="prev_period" selected>环比上期（等长）</option>
+              <option value="7d">近 7 天</option>
+              <option value="30d">近 30 天</option>
+              <option value="month">本月</option>
+              <option value="custom">自定义</option>
+            </select>
+            <span id="compareDateRangeDisplay" class="date-range-display" hidden></span>
+            <span class="date-custom" id="compareDateCustom" hidden>
+              <input type="date" id="compareDateFrom" aria-label="对比开始日期" />
+              <span style="color:var(--muted)">—</span>
+              <input type="date" id="compareDateTo" aria-label="对比结束日期" />
+            </span>
+          </div>
+        </label>
+        <div class="compare-display-opts" id="compareDisplayOpts" hidden>
+          <label><input type="checkbox" id="showCompareValues" checked /> 明细显示对比期数值</label>
+          <label><input type="checkbox" id="showChangePct" checked /> 明细显示涨跌幅度</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row" id="summaryKpis"></div>
+
+    <section class="section" id="trendSection">
+      <div class="section-head">
+        <h2>时间趋势</h2>
+        <p class="hint">在上方汇总指标卡片中点击选择/取消（最多 4 项，至少 1 项）；颜色标签与折线、左右 Y 轴刻度同色。按日汇总为 Demo 均摊估算，非亚马逊原始日粒度导出。</p>
+      </div>
+      <div class="chart-box chart-box-trend">
+        <canvas id="chartTrend"></canvas>
+        <div id="trendChartEmpty" class="trend-chart-empty" hidden>请至少选择 1 个指标</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>店铺维度</h2>
+      <p class="hint">各店铺 Tag 数与核心转化指标汇总；启用对比后列表展示本期、对比期（蓝字）及涨跌幅度</p>
+      <div class="grid-2">
+        <div class="chart-box"><canvas id="chartShop"></canvas></div>
+        <div class="table-scroll"><table id="tableShop"></table></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>定位维度</h2>
+      <p class="hint">P · 单品 vs S · 店铺；启用对比后指标含对比期与涨跌（绿涨/红跌/灰持平/黄新增）</p>
+      <div class="grid-2">
+        <div class="chart-box"><canvas id="chartTargeting"></canvas></div>
+        <div class="table-scroll"><table id="tableTargeting"></table></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>广告类型</h2>
+      <p class="hint">Console Amazon Channel 对应类型（Social / Search 等）；启用对比后指标含对比期与涨跌</p>
+      <div class="grid-2">
+        <div class="chart-box"><canvas id="chartAdType"></canvas></div>
+        <div class="table-scroll"><table id="tableAdType"></table></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>营销大类 · 下钻营销小类</h2>
+      <p class="hint">点击大类行展开小类明细；启用对比后大类/小类行均含对比期与涨跌</p>
+      <div class="table-scroll"><table id="tableStrategy"></table></div>
+    </section>
+
+    <section class="section">
+      <h2>Publisher · 投放载体效能</h2>
+      <p class="hint">点击 Publisher 下钻，按「广告类型 × 营销大类 × 营销小类」汇合成行，查看该载体下最小营销颗粒的 Tag 与指标明细</p>
+      <div class="table-scroll"><table id="tablePublisher"></table></div>
+      <div id="publisherDetail" class="publisher-detail" hidden></div>
+    </section>
+
+    <footer class="doc-footer">Demo · 数据来自 localStorage · 作者：@beynawoo-code</footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="./amazon-attribution-tag-wizard-data.js"></script>
+  <script src="./amazon-attribution-taxonomy-config-store.js"></script>
+  <script>window.TaxonomyConfigStore?.applyToWizard();</script>
+  <script src="./amazon-attribution-tag-store.js"></script>
+  <script src="./amazon-attribution-tag-manage-data.js"></script>
+  <script src="./amazon-attribution-tag-analytics.js"></script>
+  <script src="./amazon-attribution-tag-overview-demo.js"></script>
+</body>
+</html>

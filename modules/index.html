@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>亚马逊旗舰店子系统 · 方案导航</title>
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --panel: #121a26;
+      --panel2: #0f1520;
+      --border: #243044;
+      --text: #e8eef5;
+      --muted: #8b9cb3;
+      --accent: #ff9900;
+      --link: #7eb3ff;
+      --radius: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font);
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255, 153, 0, 0.08), transparent),
+        radial-gradient(700px 400px at 100% 10%, rgba(59, 130, 246, 0.07), transparent),
+        var(--bg);
+      color: var(--text); line-height: 1.55;
+    }
+    .app { max-width: min(1080px, 100%); margin: 0 auto; padding: 28px 16px 64px; }
+    header { margin-bottom: 24px; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .lead { color: var(--muted); font-size: 0.9rem; margin: 0; max-width: 640px; }
+    nav.toc {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 28px;
+      padding: 12px; background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    nav.toc a {
+      color: var(--link); text-decoration: none; font-size: 0.82rem; font-weight: 600;
+      padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--panel2);
+    }
+    nav.toc a:hover { border-color: var(--accent); color: var(--text); }
+    section { margin-bottom: 28px; }
+    section h2 {
+      font-size: 1rem; margin: 0 0 12px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border); color: #fcd34d;
+    }
+    section h3 {
+      font-size: 0.85rem; margin: 16px 0 8px; color: var(--muted); font-weight: 600;
+    }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 0.84rem;
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden;
+    }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--panel2); color: var(--muted); font-weight: 600; font-size: 0.75rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    a.page-link { color: var(--link); text-decoration: none; font-weight: 600; }
+    a.page-link:hover { text-decoration: underline; }
+    .desc { font-size: 0.78rem; color: var(--muted); margin-top: 4px; font-weight: 400; }
+    .tag {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;
+    }
+    .tag-arch { background: rgba(255, 153, 0, 0.15); color: #fcd34d; }
+    .tag-demo { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+    .tag-sop { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+    .tag-ref { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; }
+    .tag-api { background: rgba(6, 182, 212, 0.15); color: #67e8f9; }
+    footer {
+      margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border);
+      font-size: 0.78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>亚马逊旗舰店子系统 · 方案导航</h1>
+      <p class="lead">涵盖旗舰店引流、转化分析、Attribution Tag 与联盟等能力的方案说明与交互预览，请点击下方标题进入对应页面。</p>
+    </header>
+
+    <nav class="toc" aria-label="快速跳转">
+      <a href="#overview">整体方案</a>
+      <a href="#page-planning">页面规划</a>
+      <a href="#publish">发布引流</a>
+      <a href="#analytics">数据分析</a>
+    </nav>
+
+    <section id="overview">
+      <h2>整体方案</h2>
+      <table>
+        <thead>
+          <tr><th>文档</th><th>类型</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <a class="page-link" href="./_system/l3-business-workflow/amazon-brand-store-workflow.html">运营工作流程</a>
+              <div class="desc">从目标设定到分析迭代的端到端业务链路</div>
+            </td>
+            <td><span class="tag tag-arch">工作流</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./_system/l1-business-capability-architecture/flagship-store_capability_architecture.html">业务能力架构</a>
+              <div class="desc">子系统能力边界与职能分工</div>
+            </td>
+            <td><span class="tag tag-arch">架构</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./_system/l2-menu/flagship-store_menu_v1.html">功能菜单与角色权限</a>
+              <div class="desc">各角色可使用的功能范围</div>
+            </td>
+            <td><span class="tag tag-arch">架构</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./_system/l4-system-architecture/flagship-store_system_architecture.html">技术系统架构</a>
+              <div class="desc">模块划分与系统集成方式</div>
+            </td>
+            <td><span class="tag tag-arch">架构</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./_system/l5-api-capability/amazon-brand-store-api-architecture.html">Brand Store 数据接口能力</a>
+              <div class="desc">Amazon Ads API 能力分层与数据边界</div>
+            </td>
+            <td><span class="tag tag-api">API</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="page-planning">
+      <h2>页面规划</h2>
+      <table>
+        <thead>
+          <tr><th>文档</th><th>类型</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <a class="page-link" href="./page-planning/amazon-brand-store-page-hierarchy-demo.html">页面层级与双分类管理</a>
+              <div class="desc">站点、场景、页面结构及双分类维护</div>
+            </td>
+            <td><span class="tag tag-demo">Demo</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="publish">
+      <h2>发布引流</h2>
+
+      <h3>Attribution Tag</h3>
+      <table>
+        <thead>
+          <tr><th>文档</th><th>类型</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <a class="page-link" href="./publish-and-traffic/amazon-attribution-tag-create-demo.html">Tag 创建</a>
+              <div class="desc">新建 Attribution Tag 的操作流程</div>
+            </td>
+            <td><span class="tag tag-demo">Demo</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./publish-and-traffic/amazon-attribution-tag-manage-demo.html">Tag 管理</a>
+              <div class="desc">Tag 列表、状态与命名规范</div>
+            </td>
+            <td><span class="tag tag-demo">Demo</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./publish-and-traffic/amazon-attribution-tag-overview-demo.html">Tag 数据总览</a>
+              <div class="desc">Tag 维度汇总与效果查看</div>
+            </td>
+            <td><span class="tag tag-demo">Demo</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./publish-and-traffic/attribution-campaign-create-sop.html">Tag 创建操作指引</a>
+              <div class="desc">Amazon Console 与 ERP 双轨操作说明</div>
+            </td>
+            <td><span class="tag tag-sop">SOP</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>渠道与营销策略</h3>
+      <table>
+        <thead>
+          <tr><th>文档</th><th>类型</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <a class="page-link" href="./publish-and-traffic/channel-taxonomy-v1.html">站外引流渠道分类</a>
+              <div class="desc">渠道字典与营销策略口径</div>
+            </td>
+            <td><span class="tag tag-ref">规范</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./publish-and-traffic/amazon-attribution-taxonomy-config-demo.html">广告类型与营销策略配置</a>
+              <div class="desc">渠道、广告类型与策略的对应关系</div>
+            </td>
+            <td><span class="tag tag-demo">Demo</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./publish-and-traffic/amazon-attribution-publishers-v1.html">Publisher 选型说明</a>
+              <div class="desc">联盟 Publisher 选型与使用建议</div>
+            </td>
+            <td><span class="tag tag-ref">规范</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="analytics">
+      <h2>数据分析</h2>
+      <table>
+        <thead>
+          <tr><th>文档</th><th>类型</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <a class="page-link" href="./analytics-and-iteration/amazon-flagship-store-insights-dashboard.html">旗舰店综合看板</a>
+              <div class="desc">多站点 KPI、趋势与页面/ASIN 分析</div>
+            </td>
+            <td><span class="tag tag-demo">Demo</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./analytics-and-iteration/amazon-brand-store-dashboard-demo.html">数据看板预览</a>
+              <div class="desc">看板布局与指标展示示例</div>
+            </td>
+            <td><span class="tag tag-demo">Demo</span></td>
+          </tr>
+          <tr>
+            <td>
+              <a class="page-link" href="./analytics-and-iteration/amazon-store-channel-source-demo.html">渠道来源分析</a>
+              <div class="desc">广告、自然与其它来源的结构分布</div>
+            </td>
+            <td><span class="tag tag-demo">Demo</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>页面中的数据为方案演示用途。作者：@beynawoo-code</p>
+    </footer>
+  </div>
+</body>
+</html>
